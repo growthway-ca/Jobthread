@@ -87,8 +87,10 @@ a {
   min-height: var(--touch);
 }
 .wordmark {
-  font-weight: 700;
-  font-size: 20px;
+  font-weight: 800;
+  font-size: 23px;
+  font-stretch: 75%; /* Archivo's condensed width, as in the logo lockup */
+  letter-spacing: -0.01em;
 }
 .header-btn {
   background: none;

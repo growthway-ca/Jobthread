@@ -1,35 +1,38 @@
-// Builds the favicon and PWA icons in public/icons from the JobThread mark.
-// Run with: npm run icons
+// Builds the favicon and PWA icons in public/icons from the JobThread mark:
+// a "j" whose dot is a speech bubble. Keep the paths in sync with
+// src/components/Mark.tsx. Run with: npm run icons
 import { mkdir, writeFile } from 'node:fs/promises';
 import sharp from 'sharp';
 
-const INK = '#1B1F1D';
-const MARK_PATH = 'M -30 35 V -5 L 0 -35 L 16 -19 V -30 H 24 V -11 L 30 -5 V 35 H 22 V 50 L 8 35 Z';
+const BLUE = '#1F4FD1';
 
-/**
- * White mark on an ink square. `scale` is how much of the square the mark's
- * 92-unit viewBox fills; maskable icons need the mark inside the middle 80%.
- */
-function iconSvg({ size, scale, radius }) {
-  const box = 92 / scale;
-  const offset = (box - 92) / 2;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="${-46 - offset} ${-39 - offset} ${box} ${box}">
-  <rect x="${-46 - offset}" y="${-39 - offset}" width="${box}" height="${box}" rx="${box * radius}" fill="${INK}"/>
-  <path d="${MARK_PATH}" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+// Glyph drawn in a 0..100 box.
+const glyph = (color) => `
+  <path d="M 33 12 H 67 Q 73 12 73 18 V 30 Q 73 36 67 36 H 45 L 36 43 L 37 36 H 33 Q 27 36 27 30 V 18 Q 27 12 33 12 Z" fill="${color}"/>
+  <path d="M 54 45 V 71 Q 54 87 38 87 H 34" fill="none" stroke="${color}" stroke-width="14"/>
+  <circle cx="34" cy="87" r="7" fill="${color}"/>`;
+
+/** White glyph on a blue tile. `pad` is extra room around the glyph box, in glyph units. */
+function iconSvg({ size, pad, radius }) {
+  const box = 100 + 2 * pad;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="${-pad} ${-pad} ${box} ${box}">
+  <rect x="${-pad}" y="${-pad}" width="${box}" height="${box}" rx="${box * radius}" fill="${BLUE}"/>${glyph('#FFFFFF')}
 </svg>`;
 }
 
 const out = new URL('../public/icons/', import.meta.url);
 await mkdir(out, { recursive: true });
 
-await writeFile(new URL('favicon.svg', out), iconSvg({ size: 64, scale: 0.78, radius: 0.22 }));
+await writeFile(new URL('favicon.svg', out), iconSvg({ size: 64, pad: 10, radius: 0.22 }));
 
+// iOS and Android round the corners themselves, so the big icons are square.
 const pngs = [
-  { name: 'favicon-32.png', size: 32, scale: 0.8, radius: 0.22 },
-  { name: 'apple-touch-icon.png', size: 180, scale: 0.66, radius: 0 },
-  { name: 'icon-192.png', size: 192, scale: 0.66, radius: 0 },
-  { name: 'icon-512.png', size: 512, scale: 0.66, radius: 0 },
-  { name: 'icon-maskable-512.png', size: 512, scale: 0.5, radius: 0 },
+  { name: 'favicon-32.png', size: 32, pad: 8, radius: 0.22 },
+  { name: 'apple-touch-icon.png', size: 180, pad: 22, radius: 0 },
+  { name: 'icon-192.png', size: 192, pad: 22, radius: 0 },
+  { name: 'icon-512.png', size: 512, pad: 22, radius: 0 },
+  // Maskable icons get cropped to a circle; keep the glyph in the middle 60%.
+  { name: 'icon-maskable-512.png', size: 512, pad: 40, radius: 0 },
 ];
 for (const p of pngs) {
   await sharp(Buffer.from(iconSvg(p))).png().toFile(new URL(p.name, out).pathname);
