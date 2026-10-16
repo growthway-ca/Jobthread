@@ -36,6 +36,20 @@ export function midSentence(text: string): string {
   return t;
 }
 
+/** Time-added value the schedule chips use when the change adds no time. */
+export const NO_SCHEDULE_CHANGE = 'No change';
+
+export function isNoScheduleChange(timeAdded: string | null | undefined): boolean {
+  return /^no change\b/i.test(timeAdded?.trim() ?? '');
+}
+
+/** "adds half a day", "no change to the schedule", or '' when blank. */
+export function scheduleClause(timeAdded: string | null | undefined): string {
+  if (!timeAdded?.trim()) return '';
+  if (isNoScheduleChange(timeAdded)) return 'no change to the schedule';
+  return `adds ${midSentence(stripEndPunctuation(timeAdded))}`;
+}
+
 export interface ChangeMessageInput {
   clientName: string;
   number: number;
@@ -48,7 +62,8 @@ export interface ChangeMessageInput {
 
 export function changeMessage(m: ChangeMessageInput): string {
   const hi = firstName(m.clientName) ? `Hi ${firstName(m.clientName)}, ` : 'Hi, ';
-  const time = m.timeAdded?.trim() ? `, adds ${midSentence(stripEndPunctuation(m.timeAdded))}` : '';
+  const schedule = scheduleClause(m.timeAdded);
+  const time = schedule ? `, ${schedule}` : '';
   return (
     `${hi}change #${m.number} for your ${m.jobTitle.trim()}: ${stripEndPunctuation(m.description)}. ` +
     `${formatMoney(m.priceCents)} + HST${time}. Approve here: ${m.link}`

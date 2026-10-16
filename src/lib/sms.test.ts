@@ -38,6 +38,23 @@ describe('changeMessage', () => {
   });
 });
 
+describe('schedule wording', () => {
+  it('says "no change to the schedule" for the No change chip', () => {
+    const text = changeMessage({
+      clientName: 'Matt P.',
+      number: 8,
+      jobTitle: 'basement',
+      description: 'Move stair light switch to the top',
+      priceCents: 18500,
+      timeAdded: 'No change',
+      link: 'L',
+    });
+    expect(text).toBe(
+      'Hi Matt, change #8 for your basement: Move stair light switch to the top. $185 + HST, no change to the schedule. Approve here: L',
+    );
+  });
+});
+
 describe('smsHref', () => {
   it('uses & on iPhone', () => {
     setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)');

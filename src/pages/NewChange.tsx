@@ -3,10 +3,25 @@ import { Link, useParams } from 'react-router-dom';
 import { supabase, approvalLink, publicBaseUrl } from '../lib/supabase';
 import { errorMessage } from '../lib/format';
 import { parseDollars } from '../lib/money';
-import { changeMessage, firstName, smsHref } from '../lib/sms';
+import { changeMessage, firstName, NO_SCHEDULE_CHANGE, smsHref } from '../lib/sms';
 import { useJob } from '../lib/useJob';
 import { ErrorNote, Loading, Page } from '../components/Layout';
 import { SendActions } from '../components/SendActions';
+
+type Schedule = 'none' | 'half' | 'day' | 'other';
+
+const SCHEDULE_CHOICES: { value: Schedule; label: string }[] = [
+  { value: 'none', label: 'No change' },
+  { value: 'half', label: '+ ½ day' },
+  { value: 'day', label: '+ 1 day' },
+  { value: 'other', label: 'Other' },
+];
+
+const SCHEDULE_VALUES: Record<Exclude<Schedule, 'other'>, string> = {
+  none: NO_SCHEDULE_CHANGE,
+  half: 'Half a day',
+  day: '1 day',
+};
 
 interface SentChange {
   number: number;
@@ -18,7 +33,9 @@ export function NewChange() {
   const { data, error: loadError } = useJob(jobId);
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
-  const [timeAdded, setTimeAdded] = useState('');
+  const [schedule, setSchedule] = useState<Schedule>('none');
+  const [otherTime, setOtherTime] = useState('');
+  const timeAdded = schedule === 'other' ? otherTime : SCHEDULE_VALUES[schedule];
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState<SentChange | null>(null);
@@ -50,6 +67,7 @@ export function NewChange() {
     e.preventDefault();
     if (!description.trim()) return setError('Say what’s changing.');
     if (priceCents === null) return setError('Enter the price in dollars, like 850 or 1,250.50.');
+    if (schedule === 'other' && !otherTime.trim()) return setError('Say how much time this adds, like 3 days.');
     setBusy(true);
     setError(null);
 
@@ -132,15 +150,32 @@ export function NewChange() {
           </div>
           <span className="hint">For a credit, put a minus sign in front.</span>
         </label>
-        <label className="field">
-          <span>Time added</span>
-          <input
-            maxLength={80}
-            placeholder="Half a day"
-            value={timeAdded}
-            onChange={(e) => setTimeAdded(e.target.value)}
-          />
-        </label>
+        <fieldset className="field chips-field">
+          <legend>Schedule</legend>
+          <div className="chips">
+            {SCHEDULE_CHOICES.map((choice) => (
+              <button
+                key={choice.value}
+                type="button"
+                className={schedule === choice.value ? 'chip selected' : 'chip'}
+                aria-pressed={schedule === choice.value}
+                onClick={() => setSchedule(choice.value)}
+              >
+                {choice.label}
+              </button>
+            ))}
+          </div>
+          {schedule === 'other' && (
+            <input
+              aria-label="Time this adds"
+              maxLength={80}
+              placeholder="3 days"
+              autoFocus
+              value={otherTime}
+              onChange={(e) => setOtherTime(e.target.value)}
+            />
+          )}
+        </fieldset>
 
         <div>
           <p className="preview-label">{firstName(client.name) || client.name} will get this text:</p>

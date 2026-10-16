@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { supabase, approvalLink } from '../lib/supabase';
 import { errorMessage, formatWhen } from '../lib/format';
 import { formatMoney, jobTotals, taxLabel } from '../lib/money';
-import { changeMessage, firstName, midSentence } from '../lib/sms';
+import { changeMessage, firstName, scheduleClause } from '../lib/sms';
 import { useJob, type JobData } from '../lib/useJob';
 import { ErrorNote, Loading, Page } from '../components/Layout';
 import { SendActions } from '../components/SendActions';
@@ -48,6 +48,8 @@ export function JobThread() {
         </p>
         {job.status === 'done' && <span className="pill">Done</span>}
       </div>
+
+      <JobSummary data={data} />
 
       <Link to={`/jobs/${job.id}/changes/new`} className="btn primary">
         New change
@@ -213,7 +215,7 @@ function SentChange({
       <p className="item-body">{change.description}</p>
       <p className="item-price">
         {formatMoney(change.price_cents)} + HST
-        {change.time_added ? ` · adds ${midSentence(change.time_added)}` : ''}
+        {scheduleClause(change.time_added) ? ` · ${scheduleClause(change.time_added)}` : ''}
       </p>
       {change.status === 'sent' && (
         <>
@@ -229,6 +231,46 @@ function SentChange({
       {change.status === 'void' && <span className="pill">Voided</span>}
       <ErrorNote message={error} />
     </article>
+  );
+}
+
+/** The numbers a contractor wants at a glance, above the thread. */
+function JobSummary({ data }: { data: JobData }) {
+  const { job, changes } = data;
+  const totals = jobTotals(job.contract_cents, job.tax_rate, changes);
+  const approvedCount = changes.filter((c) => c.status === 'approved').length;
+  const waiting = changes.filter((c) => c.status === 'sent');
+
+  return (
+    <div className="card summary">
+      <div className="summary-line">
+        <span>Contract</span>
+        <span className="leader" aria-hidden="true" />
+        <span className="money">{formatMoney(job.contract_cents)}</span>
+      </div>
+      <div className="summary-line">
+        <span>
+          Changes, {approvedCount} approved
+        </span>
+        <span className="leader" aria-hidden="true" />
+        <span className="money">
+          {totals.approvedCents < 0 ? '−' : '+'} {formatMoney(Math.abs(totals.approvedCents))}
+        </span>
+      </div>
+      <div className="summary-total">
+        <span>Job total</span>
+        <span className="money">{formatMoney(totals.subtotalCents)}</span>
+      </div>
+      <p className="muted small">
+        Before HST. With HST: {formatMoney(totals.totalCents, { alwaysCents: true })}
+      </p>
+      {waiting.length > 0 && (
+        <p className="summary-waiting">
+          {waiting.length === 1 ? '1 change' : `${waiting.length} changes`} waiting on{' '}
+          {firstName(data.client.name)}, {formatMoney(totals.pendingCents)} not counted yet
+        </p>
+      )}
+    </div>
   );
 }
 

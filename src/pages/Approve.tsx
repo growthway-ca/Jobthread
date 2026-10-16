@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { formatWhenSentence } from '../lib/format';
 import { formatMoney, taxCents, taxLabel } from '../lib/money';
-import { smsHref } from '../lib/sms';
+import { isNoScheduleChange, midSentence, smsHref } from '../lib/sms';
 import { ErrorNote, Header, Loading } from '../components/Layout';
 import type { ClientChange } from '../lib/types';
 
@@ -138,8 +138,10 @@ function ChangeView({
           </div>
           {change.time_added && (
             <div className="line">
-              <span>Time added</span>
-              <span>{change.time_added}</span>
+              <span>Schedule</span>
+              <span>
+                {isNoScheduleChange(change.time_added) ? 'No change' : `Adds ${midSentence(change.time_added)}`}
+              </span>
             </div>
           )}
         </div>
