@@ -1,0 +1,574 @@
+:root {
+  --ink: #1b1f1d;
+  --page: #eef0ee;
+  --card: #ffffff;
+  --border: #d3d8d4;
+  --muted: #565e59;
+  --accent: #1f4fd1;
+  --accent-hover: #163a9c;
+  --approved: #0f6b5c;
+  --approved-bg: #eaf4f1;
+  --danger: #a3261b;
+  --waiting: #7a4b00;
+  --waiting-bg: #fbf1de;
+
+  --radius-card: 20px;
+  --radius-input: 12px;
+  --touch: 44px;
+  --button: 54px;
+
+  --font: 'Archivo', Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2 {
+  margin: 0 0 8px;
+  line-height: 1.15;
+  font-weight: 700;
+}
+h1 {
+  font-size: 28px;
+}
+h2,
+.h2 {
+  font-size: 20px;
+}
+p {
+  margin: 0 0 8px;
+}
+code {
+  font-size: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1px 5px;
+}
+
+a {
+  color: var(--accent);
+}
+
+/* ---------------------------------------------------------------- layout */
+
+.app-header {
+  background: var(--ink);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  padding-top: max(10px, env(safe-area-inset-top));
+  min-height: 60px;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  text-decoration: none;
+  min-height: var(--touch);
+}
+.wordmark {
+  font-weight: 700;
+  font-size: 20px;
+}
+.header-btn {
+  background: none;
+  border: 0;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  min-height: var(--touch);
+  padding: 0 4px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 16px calc(40px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.page.narrow {
+  max-width: 480px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.title-row h1 {
+  margin: 0;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  align-self: flex-start;
+  font-weight: 500;
+  text-decoration: none;
+}
+.back::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  margin-right: 8px;
+}
+
+.muted {
+  color: var(--muted);
+}
+.small {
+  font-size: 14px;
+}
+.block {
+  display: block;
+}
+.full {
+  flex-basis: 100%;
+}
+.center {
+  text-align: center;
+}
+.pad {
+  padding: 24px 0;
+}
+
+/* ---------------------------------------------------------------- cards */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+.pad-card {
+  padding: 20px;
+}
+
+/* ---------------------------------------------------------------- forms */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field > span:first-child {
+  font-weight: 600;
+  font-size: 15px;
+}
+.hint {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+input,
+textarea {
+  font: inherit;
+  font-size: 17px; /* 16px+ stops iOS zooming on focus */
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  padding: 12px 14px;
+  min-height: 50px;
+  width: 100%;
+}
+textarea {
+  resize: vertical;
+}
+input:focus,
+textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+.code-input {
+  font-size: 24px;
+  letter-spacing: 0.2em;
+  text-align: center;
+}
+
+.money-input {
+  display: flex;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  padding-left: 14px;
+}
+.money-input:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+.money-input span {
+  font-size: 17px;
+  color: var(--muted);
+}
+.money-input input {
+  border: 0;
+  outline: none;
+  padding-left: 6px;
+}
+.money-input input:focus {
+  outline: none;
+}
+
+.error {
+  color: var(--danger);
+  font-weight: 500;
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------- buttons */
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--button);
+  padding: 0 24px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.btn.secondary {
+  background: var(--card);
+  color: var(--ink);
+  border-color: var(--border);
+}
+.btn.secondary:hover {
+  border-color: var(--ink);
+}
+.btn.plain {
+  background: none;
+  color: var(--accent);
+  min-height: var(--touch);
+}
+.btn.small {
+  width: auto;
+  min-height: var(--touch);
+  padding: 0 18px;
+  font-size: 15px;
+  background: var(--accent);
+  color: #fff;
+}
+.btn.small.plain {
+  background: none;
+  color: var(--accent);
+  padding: 0 10px;
+}
+.btn.danger,
+.btn.small.plain.danger {
+  color: var(--danger);
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ---------------------------------------------------------------- jobs */
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.job-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  color: inherit;
+  text-decoration: none;
+  min-height: 80px;
+}
+.job-card:hover {
+  border-color: var(--ink);
+}
+.job-card.done {
+  opacity: 0.7;
+}
+.job-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  min-width: 0;
+}
+.job-title {
+  font-size: 18px;
+}
+.job-card-total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  white-space: nowrap;
+}
+.money {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pill {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--page);
+  color: var(--muted);
+}
+.pill.waiting {
+  background: var(--waiting-bg);
+  color: var(--waiting);
+}
+.pill.approved-pill {
+  background: var(--approved-bg);
+  color: var(--approved);
+}
+
+/* ---------------------------------------------------------------- job thread */
+
+.job-head h1 {
+  margin-bottom: 4px;
+}
+.job-head p {
+  margin: 0;
+}
+
+.tabs {
+  display: flex;
+  background: #dde1de;
+  border-radius: 999px;
+  padding: 4px;
+}
+.tab {
+  flex: 1;
+  min-height: var(--touch);
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.tab.active {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(27, 31, 29, 0.12);
+}
+
+.note-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.thread {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.item {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+.item p {
+  margin: 0;
+}
+.item-meta {
+  font-size: 14px;
+  color: var(--muted);
+}
+.item-title {
+  font-weight: 700;
+}
+.item-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.item-price {
+  font-weight: 600;
+}
+.item.change {
+  border-left: 6px solid var(--accent);
+}
+.item.change.voided {
+  border-left-color: var(--border);
+}
+.item.change.voided .item-body,
+.item.change.voided .item-price {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.item.approved {
+  background: var(--approved-bg);
+  border-color: var(--approved);
+  border-left: 6px solid var(--approved);
+}
+.item.approved .item-meta,
+.item.approved .item-title {
+  color: var(--approved);
+}
+.item.muted-item {
+  background: transparent;
+  color: var(--muted);
+}
+.waiting-line {
+  margin-top: 6px !important;
+  font-weight: 600;
+  color: var(--waiting);
+}
+
+.footer-actions {
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+/* ---------------------------------------------------------------- totals */
+
+.totals {
+  display: flex;
+  flex-direction: column;
+}
+.card.totals {
+  padding: 8px 20px;
+}
+.card.totals h2 {
+  margin-top: 12px;
+}
+.totals .line {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--page);
+}
+.totals .line:last-child {
+  border-bottom: 0;
+}
+.totals .line.rule {
+  border-top: 1px solid var(--ink);
+}
+.totals .line.grand {
+  font-size: 19px;
+  font-weight: 700;
+}
+.totals.pending {
+  border-style: dashed;
+}
+
+/* ---------------------------------------------------------------- new change */
+
+.preview-label {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+.sms-preview {
+  padding: 14px 16px;
+  background: #e4e8e5;
+  border-color: #e4e8e5;
+  border-radius: 20px 20px 20px 6px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* ---------------------------------------------------------------- approval page */
+
+.from {
+  font-weight: 600;
+  color: var(--muted);
+}
+.change-desc {
+  font-size: 18px;
+  margin: 12px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.approved-banner {
+  background: var(--approved-bg);
+  border-color: var(--approved);
+  color: var(--approved);
+  padding: 20px;
+}
+.approved-banner h1 {
+  color: var(--approved);
+}
+.approved-banner strong {
+  color: var(--ink);
+}
