@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Mark } from './Mark';
+import { BottomNav } from './BottomNav';
 
 export function Header({ right, linkHome = true }: { right?: ReactNode; linkHome?: boolean }) {
   const brand = (
@@ -23,11 +24,29 @@ export function Header({ right, linkHome = true }: { right?: ReactNode; linkHome
   );
 }
 
-export function Page({ children, header }: { children: ReactNode; header?: ReactNode }) {
+/** Header for signed-in contractor screens. */
+export function AppHeader() {
+  return (
+    <Header
+      right={
+        <Link to="/settings" className="header-btn">
+          Settings
+        </Link>
+      }
+    />
+  );
+}
+
+/**
+ * A contractor screen: header, content, and the bottom tabs unless `nav` is
+ * false (forms keep the screen to themselves).
+ */
+export function Page({ children, header, nav = true }: { children: ReactNode; header?: ReactNode; nav?: boolean }) {
   return (
     <>
-      {header ?? <Header />}
-      <main className="page">{children}</main>
+      {header ?? <AppHeader />}
+      <main className={nav ? 'page with-nav' : 'page'}>{children}</main>
+      {nav && <BottomNav />}
     </>
   );
 }

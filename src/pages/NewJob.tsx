@@ -4,13 +4,13 @@ import { supabase } from '../lib/supabase';
 import { errorMessage } from '../lib/format';
 import { parseDollars } from '../lib/money';
 import { ErrorNote, Page } from '../components/Layout';
+import { ClientPicker, resolveClient, type ClientChoice } from '../components/ClientPicker';
 
 export function NewJob() {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [address, setAddress] = useState('');
-  const [clientName, setClientName] = useState('');
-  const [clientPhone, setClientPhone] = useState('');
+  const [client, setClient] = useState<ClientChoice>({ kind: 'new', name: '', phone: '' });
   const [contract, setContract] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,32 +23,26 @@ export function NewJob() {
     }
     setBusy(true);
     setError(null);
-
-    const clientId = crypto.randomUUID();
-    const jobId = crypto.randomUUID();
-    const { error: clientError } = await supabase
-      .from('clients')
-      .insert({ id: clientId, name: clientName.trim(), phone: clientPhone.trim() });
-    if (clientError) {
+    try {
+      const clientId = await resolveClient(client);
+      const jobId = crypto.randomUUID();
+      const { error } = await supabase.from('jobs').insert({
+        id: jobId,
+        client_id: clientId,
+        title: title.trim(),
+        address: address.trim() || null,
+        contract_cents: contractCents,
+      });
+      if (error) throw error;
+      navigate(`/jobs/${jobId}`, { replace: true });
+    } catch (err) {
       setBusy(false);
-      return setError(errorMessage(clientError));
+      setError(errorMessage(err));
     }
-    const { error: jobError } = await supabase.from('jobs').insert({
-      id: jobId,
-      client_id: clientId,
-      title: title.trim(),
-      address: address.trim() || null,
-      contract_cents: contractCents,
-    });
-    if (jobError) {
-      setBusy(false);
-      return setError(errorMessage(jobError));
-    }
-    navigate(`/jobs/${jobId}`, { replace: true });
   }
 
   return (
-    <Page>
+    <Page nav={false}>
       <Link to="/" className="back">
         Back to jobs
       </Link>
@@ -62,21 +56,7 @@ export function NewJob() {
           <span>Address</span>
           <input autoComplete="street-address" value={address} onChange={(e) => setAddress(e.target.value)} />
         </label>
-        <label className="field">
-          <span>Client name</span>
-          <input required value={clientName} onChange={(e) => setClientName(e.target.value)} />
-        </label>
-        <label className="field">
-          <span>Client mobile</span>
-          <input
-            type="tel"
-            inputMode="tel"
-            required
-            minLength={7}
-            value={clientPhone}
-            onChange={(e) => setClientPhone(e.target.value)}
-          />
-        </label>
+        <ClientPicker value={client} onChange={setClient} />
         <label className="field">
           <span>Contract amount, before tax</span>
           <div className="money-input">

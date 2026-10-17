@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import { errorMessage } from './format';
-import type { Change, Client, Job, JobEvent } from './types';
+import { signedPhotoUrls } from './photos';
+import type { Change, Client, Job, JobEvent, JobPhoto, Milestone } from './types';
 
 export interface JobData {
   job: Job;
   client: Client;
   changes: Change[];
   events: JobEvent[];
+  milestones: Milestone[];
+  photos: JobPhoto[];
+  /** storage_path -> signed URL, valid for an hour. */
+  photoUrls: Record<string, string>;
 }
 
 /**
@@ -22,12 +27,15 @@ export function useJob(jobId: string | undefined) {
 
   const reload = useCallback(async () => {
     if (!jobId) return;
-    const [jobRes, changesRes, eventsRes] = await Promise.all([
+    const [jobRes, changesRes, eventsRes, milestonesRes, photosRes] = await Promise.all([
       supabase.from('jobs').select('*, clients(*)').eq('id', jobId).maybeSingle(),
       supabase.from('changes').select('*').eq('job_id', jobId).order('number'),
       supabase.from('job_events').select('*').eq('job_id', jobId).order('created_at', { ascending: false }),
+      supabase.from('payment_milestones').select('*').eq('job_id', jobId).order('position'),
+      supabase.from('job_photos').select('*').eq('job_id', jobId).order('created_at'),
     ]);
-    const firstError = jobRes.error ?? changesRes.error ?? eventsRes.error;
+    const firstError =
+      jobRes.error ?? changesRes.error ?? eventsRes.error ?? milestonesRes.error ?? photosRes.error;
     if (firstError) {
       setError(errorMessage(firstError));
       return;
@@ -37,12 +45,17 @@ export function useJob(jobId: string | undefined) {
       return;
     }
     const { clients, ...job } = jobRes.data as Job & { clients: Client };
+    const photos = (photosRes.data ?? []) as JobPhoto[];
+    const photoUrls = await signedPhotoUrls(photos.map((p) => p.storage_path));
     setError(null);
     setData({
       job: job as Job,
       client: clients,
       changes: (changesRes.data ?? []) as Change[],
       events: (eventsRes.data ?? []) as JobEvent[],
+      milestones: (milestonesRes.data ?? []) as Milestone[],
+      photos,
+      photoUrls,
     });
   }, [jobId]);
 

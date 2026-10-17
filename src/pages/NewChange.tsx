@@ -42,7 +42,7 @@ export function NewChange() {
 
   if (!data) {
     return (
-      <Page>
+      <Page nav={false}>
         <ErrorNote message={loadError} />
         {!loadError && <Loading />}
       </Page>
@@ -103,7 +103,7 @@ export function NewChange() {
 
   if (sent) {
     return (
-      <Page>
+      <Page nav={false}>
         <h1>Change #{sent.number} is ready to send</h1>
         <p className="muted">
           Send this from your Messages app to {client.name}. If Messages didn’t open, tap the button below or copy
@@ -121,7 +121,7 @@ export function NewChange() {
   }
 
   return (
-    <Page>
+    <Page nav={false}>
       <Link to={`/jobs/${job.id}`} className="back">
         Back to {job.title}
       </Link>

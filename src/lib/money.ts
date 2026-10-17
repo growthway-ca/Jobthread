@@ -60,3 +60,34 @@ export function taxLabel(rate: number): string {
   // v1 is Ontario-only; the brief calls the tax HST throughout.
   return `HST (${Math.round(Number(rate) * 1000) / 10}%)`;
 }
+
+export interface PaymentTotals {
+  scheduledCents: number;
+  paidCents: number;
+  requestedCents: number;
+  /** Job subtotal (before HST) minus what's been paid. */
+  leftCents: number;
+  /** Job subtotal not yet covered by a scheduled payment. */
+  unscheduledCents: number;
+}
+
+export function paymentTotals(
+  subtotalCents: number,
+  milestones: { status: string; amount_cents: number }[],
+): PaymentTotals {
+  const sum = (status?: string) =>
+    milestones.filter((m) => !status || m.status === status).reduce((t, m) => t + m.amount_cents, 0);
+  const scheduledCents = sum();
+  const paidCents = sum('paid');
+  return {
+    scheduledCents,
+    paidCents,
+    requestedCents: sum('requested'),
+    leftCents: subtotalCents - paidCents,
+    unscheduledCents: subtotalCents - scheduledCents,
+  };
+}
+
+export function holdbackCents(subtotalCents: number, rate: number): number {
+  return Math.round(subtotalCents * Number(rate));
+}

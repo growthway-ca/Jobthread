@@ -9,6 +9,14 @@ import { NewJob } from './pages/NewJob';
 import { JobThread } from './pages/JobThread';
 import { NewChange } from './pages/NewChange';
 import { Approve } from './pages/Approve';
+import { Proposal } from './pages/Proposal';
+import { Settings } from './pages/Settings';
+import { EditJob } from './pages/EditJob';
+import { NewDailyLog } from './pages/NewDailyLog';
+import { Money } from './pages/Money';
+import { Quotes } from './pages/Quotes';
+import { QuoteEdit } from './pages/QuoteEdit';
+import { QuoteDetail } from './pages/QuoteDetail';
 
 export function App() {
   if (!isConfigured) return <NotConfigured />;
@@ -17,6 +25,7 @@ export function App() {
       <Routes>
         {/* Public: clients never sign in. */}
         <Route path="/a/:token" element={<Approve />} />
+        <Route path="/p/:token" element={<Proposal />} />
         <Route
           path="/*"
           element={
@@ -48,6 +57,14 @@ function ContractorApp() {
       <Route path="/jobs/new" element={<NewJob />} />
       <Route path="/jobs/:jobId" element={<JobThread />} />
       <Route path="/jobs/:jobId/changes/new" element={<NewChange />} />
+      <Route path="/jobs/:jobId/edit" element={<EditJob />} />
+      <Route path="/jobs/:jobId/log/new" element={<NewDailyLog />} />
+      <Route path="/quotes" element={<Quotes />} />
+      <Route path="/quotes/new" element={<QuoteEdit />} />
+      <Route path="/quotes/:quoteId" element={<QuoteDetail />} />
+      <Route path="/quotes/:quoteId/edit" element={<QuoteEdit />} />
+      <Route path="/money" element={<Money />} />
+      <Route path="/settings" element={<Settings />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

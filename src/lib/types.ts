@@ -1,11 +1,21 @@
 export type ChangeStatus = 'draft' | 'sent' | 'approved' | 'declined' | 'void';
-export type EventKind = 'note' | 'change_sent' | 'change_approved' | 'change_declined' | 'change_voided';
+export type EventKind =
+  | 'note'
+  | 'daily_log'
+  | 'change_sent'
+  | 'change_approved'
+  | 'change_declined'
+  | 'change_voided'
+  | 'payment_requested'
+  | 'payment_received'
+  | 'quote_accepted';
 
 export interface Contractor {
   id: string;
   name: string;
   business_name: string;
   phone: string;
+  etransfer_email: string | null;
 }
 
 export interface Client {
@@ -24,6 +34,9 @@ export interface Job {
   tax_rate: number;
   start_date: string | null;
   status: 'active' | 'done';
+  holdback_rate: number;
+  holdback_release_date: string | null;
+  holdback_released_at: string | null;
   created_at: string;
 }
 
@@ -48,6 +61,7 @@ export interface JobEvent {
   kind: EventKind;
   body: string;
   change_id: string | null;
+  milestone_id: string | null;
   created_at: string;
 }
 
@@ -68,3 +82,99 @@ export interface ClientChange {
   approved_at: string | null;
   approved_name: string | null;
 }
+
+export type MilestoneStatus = 'upcoming' | 'requested' | 'paid';
+export type PaidMethod = 'etransfer' | 'cheque' | 'cash' | 'card' | 'other';
+
+export interface Milestone {
+  id: string;
+  job_id: string;
+  position: number;
+  title: string;
+  amount_cents: number;
+  due_note: string | null;
+  status: MilestoneStatus;
+  requested_at: string | null;
+  paid_at: string | null;
+  paid_method: PaidMethod | null;
+  created_at: string;
+}
+
+export interface JobPhoto {
+  id: string;
+  job_id: string;
+  event_id: string;
+  storage_path: string;
+  width: number | null;
+  height: number | null;
+  created_at: string;
+}
+
+export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'withdrawn' | 'lost';
+
+export interface Quote {
+  id: string;
+  client_id: string;
+  number: number;
+  title: string;
+  address: string | null;
+  scope: string | null;
+  base_cents: number;
+  tax_rate: number;
+  deposit_rate: number;
+  valid_until: string | null;
+  status: QuoteStatus;
+  approval_token: string;
+  sent_at: string | null;
+  accepted_at: string | null;
+  accepted_name: string | null;
+  job_id: string | null;
+  created_at: string;
+}
+
+export interface QuoteOption {
+  id: string;
+  quote_id: string;
+  position: number;
+  title: string;
+  detail: string | null;
+  price_cents: number;
+  recommended: boolean;
+  selected: boolean | null;
+}
+
+/** JSON returned by get_quote_by_token / accept_quote. */
+export interface ClientQuote {
+  status: QuoteStatus;
+  business_name: string;
+  contractor_phone: string;
+  client_name?: string;
+  number?: number;
+  title?: string;
+  address?: string | null;
+  scope?: string | null;
+  base_cents?: number;
+  tax_rate?: number;
+  deposit_rate?: number;
+  valid_until?: string | null;
+  expired?: boolean;
+  sent_at?: string | null;
+  accepted_at?: string | null;
+  accepted_name?: string | null;
+  options?: {
+    id: string;
+    title: string;
+    detail: string | null;
+    price_cents: number;
+    recommended: boolean;
+    selected: boolean | null;
+  }[];
+}
+
+export const PAID_METHOD_LABELS: Record<PaidMethod, string> = {
+  etransfer: 'e-Transfer',
+  cheque: 'Cheque',
+  cash: 'Cash',
+  card: 'Card',
+  other: 'Other',
+};
