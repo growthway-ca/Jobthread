@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { errorMessage } from '../lib/format';
 import { formatMoney, parseDollars } from '../lib/money';
@@ -35,6 +35,8 @@ function blankOption(): OptionDraft {
 export function QuoteEdit() {
   const { quoteId } = useParams();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const leadId = quoteId ? null : params.get('lead');
   const [loading, setLoading] = useState(Boolean(quoteId));
   const [client, setClient] = useState<ClientChoice>({ kind: 'new', name: '', phone: '' });
   const [title, setTitle] = useState('');
@@ -46,6 +48,21 @@ export function QuoteEdit() {
   const [validUntil, setValidUntil] = useState(isoDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Starting from a lead: fill in who and what.
+  useEffect(() => {
+    if (!leadId) return;
+    supabase
+      .from('leads')
+      .select('name, phone, project')
+      .eq('id', leadId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        setClient({ kind: 'new', name: data.name ?? '', phone: data.phone ?? '' });
+        if (data.project) setScope(data.project);
+      });
+  }, [leadId]);
 
   useEffect(() => {
     if (!quoteId) return;
@@ -138,6 +155,7 @@ export function QuoteEdit() {
         );
         if (error) throw error;
       }
+      if (leadId) await supabase.from('leads').update({ status: 'quoted' }).eq('id', leadId);
       navigate(`/quotes/${id}`, { replace: true });
     } catch (err) {
       setBusy(false);

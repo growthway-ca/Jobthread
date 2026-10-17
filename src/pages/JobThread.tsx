@@ -8,11 +8,13 @@ import { useJob, type JobData } from '../lib/useJob';
 import { ErrorNote, Loading, Page } from '../components/Layout';
 import { SendActions } from '../components/SendActions';
 import { PaymentsTab } from '../components/PaymentsTab';
+import { ScheduleTab } from '../components/ScheduleTab';
 import type { Change, JobEvent } from '../lib/types';
 
-type Tab = 'thread' | 'payments' | 'total';
+type Tab = 'thread' | 'schedule' | 'payments' | 'total';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'thread', label: 'Thread' },
+  { id: 'schedule', label: 'Schedule' },
   { id: 'payments', label: 'Payments' },
   { id: 'total', label: 'Total' },
 ];
@@ -28,7 +30,7 @@ export function JobThread() {
     return (
       <Page>
         <p className="center pad">We couldn’t find that job.</p>
-        <Link to="/" className="btn secondary">
+        <Link to="/jobs" className="btn secondary">
           Back to jobs
         </Link>
       </Page>
@@ -46,7 +48,7 @@ export function JobThread() {
   const { job, client } = data;
   return (
     <Page>
-      <Link to="/" className="back">
+      <Link to="/jobs" className="back">
         Back to jobs
       </Link>
       <div className="job-head">
@@ -95,6 +97,7 @@ export function JobThread() {
 
       <ErrorNote message={error} />
       {tab === 'thread' && <Thread data={data} reload={reload} />}
+      {tab === 'schedule' && <ScheduleTab data={data} reload={reload} />}
       {tab === 'payments' && <PaymentsTab data={data} reload={reload} />}
       {tab === 'total' && <Totals data={data} />}
       <JobStatusToggle data={data} reload={reload} />

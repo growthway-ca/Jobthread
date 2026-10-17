@@ -27,6 +27,11 @@ export function approvalLink(token: string): string {
   return `${publicBaseUrl()}/a/${token}`;
 }
 
+/** A client's referral link for friends. */
+export function referralLink(token: string): string {
+  return `${publicBaseUrl()}/r/${token}`;
+}
+
 /** The client's project page for a job. */
 export function projectLink(token: string): string {
   return `${publicBaseUrl()}/j/${token}`;

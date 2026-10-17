@@ -1,6 +1,8 @@
 import { NavLink, useLocation } from 'react-router-dom';
 
-function Icon({ name }: { name: 'jobs' | 'quotes' | 'money' }) {
+type IconName = 'today' | 'quotes' | 'jobs' | 'money' | 'grow';
+
+function Icon({ name }: { name: IconName }) {
   const common = {
     width: 24,
     height: 24,
@@ -12,56 +14,67 @@ function Icon({ name }: { name: 'jobs' | 'quotes' | 'money' }) {
     strokeLinejoin: 'round' as const,
     'aria-hidden': true,
   };
-  if (name === 'jobs') {
-    return (
-      <svg {...common}>
-        <path d="M4 11 12 4l8 7v9H4z" />
-        <path d="M10 20v-5h4v5" />
-      </svg>
-    );
+  switch (name) {
+    case 'today':
+      return (
+        <svg {...common}>
+          <rect x="4" y="5" width="16" height="15" rx="2" />
+          <path d="M4 10h16M9 3v4M15 3v4" />
+        </svg>
+      );
+    case 'quotes':
+      return (
+        <svg {...common}>
+          <path d="M6 3h9l4 4v14H6z" />
+          <path d="M9 12h7M9 16h7M9 8h4" />
+        </svg>
+      );
+    case 'jobs':
+      return (
+        <svg {...common}>
+          <path d="M4 11 12 4l8 7v9H4z" />
+          <path d="M10 20v-5h4v5" />
+        </svg>
+      );
+    case 'money':
+      return (
+        <svg {...common}>
+          <rect x="3" y="6" width="18" height="12" rx="2" />
+          <circle cx="12" cy="12" r="2.5" />
+        </svg>
+      );
+    case 'grow':
+      return (
+        <svg {...common}>
+          <path d="m12 3 2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6-4.5-4.2 6.1-.7z" />
+        </svg>
+      );
   }
-  if (name === 'quotes') {
-    return (
-      <svg {...common}>
-        <path d="M6 3h9l4 4v14H6z" />
-        <path d="M9 12h7M9 16h7M9 8h4" />
-      </svg>
-    );
-  }
-  return (
-    <svg {...common}>
-      <rect x="3" y="6" width="18" height="12" rx="2" />
-      <circle cx="12" cy="12" r="2.5" />
-    </svg>
-  );
 }
+
+const ITEMS: { to: string; label: string; icon: IconName; match?: (path: string) => boolean }[] = [
+  { to: '/', label: 'Today', icon: 'today', match: (p) => p === '/' },
+  { to: '/quotes', label: 'Quotes', icon: 'quotes' },
+  { to: '/jobs', label: 'Jobs', icon: 'jobs' },
+  { to: '/money', label: 'Money', icon: 'money' },
+  { to: '/grow', label: 'Grow', icon: 'grow' },
+];
 
 export function BottomNav() {
   const { pathname } = useLocation();
-  const items = [
-    { to: '/', label: 'Jobs', icon: 'jobs' as const, end: true },
-    { to: '/quotes', label: 'Quotes', icon: 'quotes' as const, end: false },
-    { to: '/money', label: 'Money', icon: 'money' as const, end: false },
-  ];
   return (
     <nav className="bottom-nav" aria-label="Main">
-      {items.map((item) => (
-        <NavLink
-          key={item.to}
-          to={item.to}
-          end={item.end}
-          className={({ isActive }) => {
-            // Job screens count as "Jobs".
-            const jobs = item.to === '/' && pathname.startsWith('/jobs');
-            return isActive || jobs ? 'nav-item active' : 'nav-item';
-          }}
-        >
-          <span className="nav-pill">
-            <Icon name={item.icon} />
-          </span>
-          <span>{item.label}</span>
-        </NavLink>
-      ))}
+      {ITEMS.map((item) => {
+        const active = item.match ? item.match(pathname) : pathname.startsWith(item.to);
+        return (
+          <NavLink key={item.to} to={item.to} end={item.to === '/'} className={active ? 'nav-item active' : 'nav-item'}>
+            <span className="nav-pill">
+              <Icon name={item.icon} />
+            </span>
+            <span>{item.label}</span>
+          </NavLink>
+        );
+      })}
     </nav>
   );
 }

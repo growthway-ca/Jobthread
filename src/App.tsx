@@ -12,6 +12,9 @@ import { Approve } from './pages/Approve';
 import { Proposal } from './pages/Proposal';
 import { ClientProject } from './pages/ClientProject';
 import { ShareJob } from './pages/ShareJob';
+import { Today } from './pages/Today';
+import { Grow } from './pages/Grow';
+import { Referral } from './pages/Referral';
 import { Settings } from './pages/Settings';
 import { EditJob } from './pages/EditJob';
 import { NewDailyLog } from './pages/NewDailyLog';
@@ -29,6 +32,7 @@ export function App() {
         <Route path="/a/:token" element={<Approve />} />
         <Route path="/p/:token" element={<Proposal />} />
         <Route path="/j/:token" element={<ClientProject />} />
+        <Route path="/r/:token" element={<Referral />} />
         <Route
           path="/*"
           element={
@@ -56,7 +60,9 @@ function ContractorApp() {
   if (!contractor) return <Profile />;
   return (
     <Routes>
-      <Route path="/" element={<Jobs />} />
+      <Route path="/" element={<Today />} />
+      <Route path="/jobs" element={<Jobs />} />
+      <Route path="/grow" element={<Grow />} />
       <Route path="/jobs/new" element={<NewJob />} />
       <Route path="/jobs/:jobId" element={<JobThread />} />
       <Route path="/jobs/:jobId/changes/new" element={<NewChange />} />

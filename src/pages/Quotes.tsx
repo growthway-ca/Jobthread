@@ -9,6 +9,7 @@ import type { Quote } from '../lib/types';
 type QuoteRow = Quote & {
   clients: { name: string } | null;
   quote_options: { price_cents: number; recommended: boolean; selected: boolean | null }[];
+  quote_views: { viewed_at: string }[];
 };
 
 /** Base plus the options that count: picked ones once accepted, ticked ones before. */
@@ -24,7 +25,7 @@ export function Quotes() {
   useEffect(() => {
     supabase
       .from('quotes')
-      .select('*, clients(name), quote_options(price_cents, recommended, selected)')
+      .select('*, clients(name), quote_options(price_cents, recommended, selected), quote_views(viewed_at)')
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
         if (error) setError(errorMessage(error));
@@ -67,7 +68,15 @@ export function Quotes() {
         <p className="muted center pad">No quotes yet. When a client accepts one, it becomes a job.</p>
       )}
       <QuoteSection title="Drafts" quotes={drafts} detail={(q) => `Started ${formatWhen(q.created_at)}`} />
-      <QuoteSection title="With clients" quotes={out} detail={(q) => `Sent ${formatWhen(q.sent_at)}`} />
+      <QuoteSection
+        title="With clients"
+        quotes={out}
+        detail={(q) =>
+          q.quote_views.length > 0
+            ? `Opened ${q.quote_views.length === 1 ? 'once' : `${q.quote_views.length} times`} · sent ${formatWhen(q.sent_at)}`
+            : `Not opened yet · sent ${formatWhen(q.sent_at)}`
+        }
+      />
       <QuoteSection title="Won" quotes={won} detail={(q) => `Accepted by ${q.accepted_name}, ${formatWhen(q.accepted_at)}`} />
       <QuoteSection title="Closed" quotes={closed} detail={(q) => (q.status === 'lost' ? 'Lost' : 'Withdrawn')} />
     </Page>

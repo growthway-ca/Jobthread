@@ -36,3 +36,32 @@ export function errorMessage(err: unknown): string {
   }
   return 'Something went wrong. Try again.';
 }
+
+/** Today's date as YYYY-MM-DD in local time. */
+export function todayIso(): string {
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
+export function addDaysIso(iso: string, days: number): string {
+  const d = new Date(iso + 'T12:00:00');
+  d.setDate(d.getDate() + days);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
+/** "Mon, Oct 20" or "Oct 20 – 22" for a date range. */
+export function formatDateRange(start: string, end?: string | null): string {
+  const fmt = (iso: string, withDay: boolean) =>
+    new Date(iso + 'T12:00:00').toLocaleDateString('en-CA', {
+      weekday: withDay ? 'short' : undefined,
+      month: 'short',
+      day: 'numeric',
+    });
+  if (!end || end === start) return fmt(start, true);
+  return `${fmt(start, false)} – ${fmt(end, false)}`;
+}
+
+export function daysAgo(iso: string | null): number {
+  if (!iso) return Infinity;
+  return (Date.now() - new Date(iso).getTime()) / (24 * 60 * 60 * 1000);
+}

@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { formatWhen } from '../lib/format';
+import { formatDateRange, formatWhen, todayIso } from '../lib/format';
 import { formatMoney, holdbackCents, taxCents } from '../lib/money';
 import { firstName, scheduleClause, smsHref } from '../lib/sms';
 import { Header, Loading } from '../components/Layout';
@@ -107,6 +107,8 @@ function ProjectView({ project: p }: { project: Project }) {
         </section>
       )}
 
+      {p.schedule.length > 0 && <ScheduleSection schedule={p.schedule} />}
+
       {p.payments.length > 0 && (
         <section className="stack">
           <h2>Payments</h2>
@@ -198,5 +200,36 @@ function ProjectView({ project: p }: { project: Project }) {
         This page updates as the job goes. Keep the link to check in anytime.
       </p>
     </div>
+  );
+}
+
+function ScheduleSection({ schedule }: { schedule: Project['schedule'] }) {
+  const today = todayIso();
+  const upcoming = schedule.filter((s) => (s.ends_on ?? s.starts_on) >= today);
+  if (upcoming.length === 0) return null;
+  return (
+    <section className="stack">
+      <h2>What’s happening when</h2>
+      <ul className="card rows">
+        {upcoming.map((s, i) => {
+          const onNow = s.starts_on <= today && (s.ends_on ?? s.starts_on) >= today;
+          return (
+            <li key={i} className="row-link static">
+              <span className={`date-chip ${onNow ? 'now' : ''}`}>{onNow ? 'Now' : formatDateRange(s.starts_on, s.ends_on)}</span>
+              <span className="row-main">
+                <strong>{s.title}</strong>
+                {(s.trade || s.note || onNow) && (
+                  <span className="muted small">
+                    {onNow ? formatDateRange(s.starts_on, s.ends_on) : ''}
+                    {onNow && (s.trade || s.note) ? ' · ' : ''}
+                    {[s.trade, s.note].filter(Boolean).join(' · ')}
+                  </span>
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

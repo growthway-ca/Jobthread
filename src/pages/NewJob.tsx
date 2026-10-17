@@ -43,7 +43,7 @@ export function NewJob() {
 
   return (
     <Page nav={false}>
-      <Link to="/" className="back">
+      <Link to="/jobs" className="back">
         Back to jobs
       </Link>
       <h1>New job</h1>

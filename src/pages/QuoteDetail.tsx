@@ -9,7 +9,7 @@ import { ErrorNote, Loading, Page } from '../components/Layout';
 import { SendActions } from '../components/SendActions';
 import type { Client, Quote, QuoteOption } from '../lib/types';
 
-type QuoteFull = Quote & { clients: Client; quote_options: QuoteOption[] };
+type QuoteFull = Quote & { clients: Client; quote_options: QuoteOption[]; quote_views: { viewed_at: string }[] };
 
 const STATUS_TEXT: Record<Quote['status'], string> = {
   draft: 'Draft',
@@ -34,7 +34,7 @@ export function QuoteDetail() {
   const load = useCallback(async () => {
     const { data, error } = await supabase
       .from('quotes')
-      .select('*, clients(*), quote_options(*)')
+      .select('*, clients(*), quote_options(*), quote_views(viewed_at)')
       .eq('id', quoteId)
       .maybeSingle();
     if (error || !data) return setError(error ? errorMessage(error) : 'We couldn’t find that quote.');
@@ -246,6 +246,13 @@ export function QuoteDetail() {
         <div className="stack">
           <p className="waiting-line">
             Waiting on {firstName(q.clients.name)} · sent {formatWhen(q.sent_at)}
+          </p>
+          <p className="muted small">
+            {q.quote_views.length === 0
+              ? 'Not opened yet.'
+              : `Opened ${q.quote_views.length === 1 ? 'once' : `${q.quote_views.length} times`}, last ${formatWhen(
+                  [...q.quote_views].sort((a, b) => b.viewed_at.localeCompare(a.viewed_at))[0].viewed_at,
+                )}.`}
           </p>
           <SendActions phone={q.clients.phone} message={message} label="Resend" />
           <a href={proposalLink(q.approval_token)} target="_blank" rel="noreferrer" className="btn plain">

@@ -16,6 +16,7 @@ export interface Contractor {
   business_name: string;
   phone: string;
   etransfer_email: string | null;
+  google_review_url: string | null;
 }
 
 export interface Client {
@@ -23,6 +24,7 @@ export interface Client {
   name: string;
   phone: string;
   email: string | null;
+  referral_token: string;
 }
 
 export interface Job {
@@ -38,6 +40,12 @@ export interface Job {
   holdback_release_date: string | null;
   holdback_released_at: string | null;
   share_token: string;
+  done_at: string | null;
+  review_asked_at: string | null;
+  review_reminded_at: string | null;
+  review_received_at: string | null;
+  checkin_6m_at: string | null;
+  checkin_12m_at: string | null;
   created_at: string;
 }
 
@@ -211,5 +219,30 @@ export interface ClientProject {
     requested_at: string | null;
     paid_at: string | null;
   }[];
+  schedule: { title: string; starts_on: string; ends_on: string | null; trade: string | null; note: string | null }[];
   updates: { body: string; created_at: string }[];
+}
+
+export interface ScheduleItem {
+  id: string;
+  job_id: string;
+  title: string;
+  starts_on: string;
+  ends_on: string | null;
+  trade: string | null;
+  note: string | null;
+  visible_to_client: boolean;
+  created_at: string;
+}
+
+export interface Lead {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  project: string | null;
+  source: 'manual' | 'referral';
+  referred_by_client_id: string | null;
+  status: 'new' | 'contacted' | 'quoted' | 'closed';
+  created_at: string;
 }
