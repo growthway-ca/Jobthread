@@ -2,6 +2,7 @@ export type ChangeStatus = 'draft' | 'sent' | 'approved' | 'declined' | 'void';
 export type EventKind =
   | 'note'
   | 'daily_log'
+  | 'message_sent'
   | 'change_sent'
   | 'change_approved'
   | 'change_declined'

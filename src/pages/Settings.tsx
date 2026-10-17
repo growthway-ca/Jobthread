@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { errorMessage } from '../lib/format';
 import { ErrorNote, Page } from '../components/Layout';
+import { InstallTip } from '../components/InstallTip';
+import { feedbackHref } from '../lib/feedback';
 
 export function Settings() {
   const { contractor, session, refreshProfile, signOut } = useAuth();
@@ -101,6 +103,14 @@ export function Settings() {
           {busy ? 'Saving…' : 'Save'}
         </button>
       </form>
+      <section className="card pad-card stack-tight feedback-card">
+        <h2>Something off, or an idea?</h2>
+        <p className="muted small">JobThread is new and built with contractors like you. Tell us what’s confusing, broken or missing.</p>
+        <a className="btn secondary" href={feedbackHref({ businessName: contractor?.business_name })}>
+          Send feedback
+        </a>
+      </section>
+      <InstallTip always />
       <div className="footer-actions stack">
         <p className="muted small">Signed in as {session?.user.email}</p>
         <button type="button" className="btn secondary" onClick={() => void signOut()}>

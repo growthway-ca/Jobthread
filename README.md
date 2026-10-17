@@ -63,6 +63,19 @@ v1 is a pilot: one contractor, one real job. See the build brief for scope.
 - **Before-and-after posts:** with the client's OK, pick two daily log photos
   and get a 4:5 image plus caption to share.
 
+- **Texts to the client:** on the job thread, **Text {client}** saves the
+  message to the thread, then opens Messages to send it from the contractor's
+  own number. Replies stay in Messages (capturing them needs a texting service).
+- **Saved trades on job sheets:** pick a saved sub or anyone sent a sheet
+  before; someone new can be saved to Subs in the same step.
+- **Feedback:** Settings has **Send feedback**, an email with the screen and
+  phone filled in. It goes to `VITE_FEEDBACK_EMAIL`, or `hello@jobthread.ca`.
+- **Home screen tip:** Today suggests installing the app until it's installed
+  or dismissed (one-tap Install on Android Chrome, steps on iPhone).
+- **Safety net:** if a database update hasn't been run yet, the profile falls
+  back to the columns every version has, and a crash on any screen shows a
+  Reload button instead of a blank page.
+
 ## Stack
 
 - Vite + React + TypeScript, React Router, plain CSS (`src/styles.css`)

@@ -7,15 +7,21 @@ interface AuthState {
   loading: boolean;
   session: Session | null;
   contractor: Contractor | null;
+  /** Set when the profile couldn't be loaded at all (not the same as "no profile yet"). */
+  profileError: boolean;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
 
+const CORE_PROFILE_COLUMNS = 'id, name, business_name, phone';
+const PROFILE_COLUMNS = `${CORE_PROFILE_COLUMNS}, etransfer_email, google_review_url, google_rating, google_review_count, credentials`;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [contractor, setContractor] = useState<Contractor | null>(null);
+  const [profileError, setProfileError] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadProfile = useCallback(async (s: Session | null) => {
@@ -23,12 +29,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setContractor(null);
       return;
     }
-    const { data } = await supabase
-      .from('contractors')
-      .select('id, name, business_name, phone, etransfer_email, google_review_url, google_rating, google_review_count, credentials')
-      .eq('id', s.user.id)
-      .maybeSingle();
-    setContractor(data ?? null);
+    const query = (columns: string) => supabase.from('contractors').select(columns).eq('id', s.user.id).maybeSingle();
+    let res = await query(PROFILE_COLUMNS);
+    // If a database update hasn't been run yet, newer columns are missing. Fall
+    // back to the ones every version has, so the app keeps working meanwhile.
+    if (res.error) res = await query(CORE_PROFILE_COLUMNS);
+    setProfileError(Boolean(res.error));
+    setContractor(res.error ? null : ((res.data as Contractor | null) ?? null));
   }, []);
 
   useEffect(() => {
@@ -57,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     session,
     contractor,
+    profileError,
     refreshProfile: () => loadProfile(session),
     signOut: async () => {
       await supabase.auth.signOut();

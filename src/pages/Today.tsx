@@ -7,6 +7,7 @@ import { formatMoney } from '../lib/money';
 import { firstName, leadReplyMessage, quoteNudgeMessage, smsHref, smsNumber } from '../lib/sms';
 import { proposalLink } from './QuoteDetail';
 import { ErrorNote, Loading, Page } from '../components/Layout';
+import { InstallTip } from '../components/InstallTip';
 import type { Lead, Quote, ScheduleItem } from '../lib/types';
 
 type JobRow = {
@@ -87,6 +88,7 @@ export function Today() {
         </p>
         <h1>Today</h1>
       </div>
+      <InstallTip />
       <ErrorNote message={error} />
       {!data && !error && <Loading />}
       {data && (

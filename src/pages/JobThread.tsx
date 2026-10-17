@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { supabase, approvalLink } from '../lib/supabase';
 import { errorMessage, formatWhen } from '../lib/format';
 import { formatMoney, jobTotals, paymentTotals, taxLabel } from '../lib/money';
-import { changeMessage, firstName, scheduleClause } from '../lib/sms';
+import { changeMessage, firstName, scheduleClause, smsHref } from '../lib/sms';
 import { useJob, type JobData } from '../lib/useJob';
 import { ErrorNote, Loading, Page } from '../components/Layout';
 import { SendActions } from '../components/SendActions';
@@ -110,42 +110,64 @@ export function JobThread() {
 }
 
 function Thread({ data, reload }: { data: JobData; reload: () => Promise<void> }) {
-  const [note, setNote] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [text, setText] = useState('');
+  const [busy, setBusy] = useState<'note' | 'message' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const changesById = new Map(data.changes.map((c) => [c.id, c]));
+  const client = data.client;
+  const clientFirst = firstName(client.name) || 'client';
 
-  async function addNote(e: FormEvent) {
-    e.preventDefault();
-    if (!note.trim()) return;
-    setBusy(true);
+  // Saves to the thread. A message also opens Messages so it goes from the contractor's own number.
+  async function save(kind: 'note' | 'message_sent') {
+    const body = text.trim();
+    if (!body) return;
+    setBusy(kind === 'note' ? 'note' : 'message');
     setError(null);
-    const { error } = await supabase
-      .from('job_events')
-      .insert({ job_id: data.job.id, kind: 'note', body: note.trim() });
-    setBusy(false);
+    const { error } = await supabase.from('job_events').insert({ job_id: data.job.id, kind, body });
+    setBusy(null);
     if (error) return setError(errorMessage(error));
-    setNote('');
+    setText('');
     await reload();
+    if (kind === 'message_sent') window.location.href = smsHref(client.phone, body);
   }
 
   return (
     <section aria-label="Job thread">
-      <form onSubmit={addNote} className="note-form">
+      <form
+        onSubmit={(e: FormEvent) => {
+          e.preventDefault();
+          void save('note');
+        }}
+        className="note-form"
+      >
         <label className="field">
-          <span>Add a note</span>
-          <textarea rows={2} maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
+          <span>Note or message to {clientFirst}</span>
+          <textarea
+            rows={2}
+            maxLength={2000}
+            placeholder={`Write a note, or a text to ${clientFirst}`}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
         </label>
-        {note.trim() && (
-          <button className="btn secondary" disabled={busy}>
-            {busy ? 'Saving…' : 'Save note'}
-          </button>
+        {text.trim() && (
+          <div className="action-grid">
+            <button type="button" className="btn primary" disabled={busy !== null} onClick={() => void save('message_sent')}>
+              {busy === 'message' ? 'Saving…' : `Text ${clientFirst}`}
+            </button>
+            <button className="btn secondary" disabled={busy !== null}>
+              {busy === 'note' ? 'Saving…' : 'Save as note'}
+            </button>
+          </div>
+        )}
+        {text.trim() && (
+          <p className="hint">Text {clientFirst} saves it here, then opens Messages to send from your number. Replies stay in Messages.</p>
         )}
         <ErrorNote message={error} />
       </form>
 
       {data.events.length === 0 && (
-        <p className="muted center pad">Nothing here yet. Notes, daily logs, changes and payments show up here.</p>
+        <p className="muted center pad">Nothing here yet. Notes, texts to the client, daily logs, changes and payments show up here.</p>
       )}
       <ol className="thread">
         {data.events.map((ev) => (
@@ -189,6 +211,17 @@ function ThreadItem({
       <article className="card item request">
         <p className="item-meta">Payment requested · {formatWhen(event.created_at)}</p>
         <p className="item-body">{event.body.replace(/^Payment requested: /, '')}</p>
+      </article>
+    );
+  }
+
+  if (event.kind === 'message_sent') {
+    return (
+      <article className="card item message">
+        <p className="item-meta">
+          Texted {firstName(data.client.name) || 'client'} · {formatWhen(event.created_at)}
+        </p>
+        <p className="item-body">{event.body}</p>
       </article>
     );
   }

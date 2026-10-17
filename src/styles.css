@@ -963,6 +963,13 @@ select:focus {
 .item.request {
   border-left: 6px solid var(--waiting);
 }
+.item.message {
+  border-left: 6px solid var(--accent);
+  background: #f2f5fd;
+}
+.item.message .item-meta {
+  color: var(--accent);
+}
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1680,4 +1687,260 @@ select:focus {
   width: 100%;
   border-radius: var(--radius-card);
   border: 1px solid var(--border);
+}
+
+/* ---------------------------------------------------------------- install tip, feedback, crash */
+
+.install-tip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 18px;
+  padding: 14px 16px;
+  border-radius: var(--radius-card);
+  background: var(--ink);
+  color: #fff;
+}
+.install-tip-text {
+  flex: 1;
+}
+.install-tip-text p {
+  margin: 0;
+}
+.install-tip-title {
+  font-weight: 700;
+}
+.install-tip .small {
+  color: #c9cfcb;
+}
+.install-tip-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+.install-tip .btn.small {
+  background: #fff;
+  color: var(--ink);
+}
+.install-tip .btn.small.plain {
+  background: none;
+  color: #c9cfcb;
+}
+.feedback-card {
+  margin-top: 24px;
+}
+.crash {
+  padding-top: 48px;
+}
+
+/* ---------------------------------------------------------------- sign-in and first-time setup */
+
+.auth {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #101312;
+  color: #fff;
+  overflow: hidden;
+}
+/* A soft blue light from the top corner, so the dark doesn't read flat. */
+.auth-glow {
+  position: absolute;
+  inset: -30% -40% auto auto;
+  width: 120vw;
+  max-width: 900px;
+  aspect-ratio: 1;
+  background: radial-gradient(closest-side, rgba(31, 79, 209, 0.55), rgba(31, 79, 209, 0) 70%);
+  pointer-events: none;
+}
+.auth-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(18px + env(safe-area-inset-top)) 22px 0;
+}
+.auth-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-stretch: 75%;
+  font-size: 24px;
+  letter-spacing: -0.01em;
+}
+.auth-signout {
+  background: none;
+  border: 0;
+  color: #c9cfcb;
+  font: inherit;
+  font-size: 15px;
+  min-height: var(--touch);
+  cursor: pointer;
+}
+.auth-hero {
+  position: relative;
+  padding: 36px 22px 28px;
+}
+.auth-hero h1 {
+  font-size: clamp(40px, 11vw, 56px);
+  line-height: 0.98;
+  letter-spacing: -0.015em;
+  margin-bottom: 14px;
+}
+.auth-hero h1 em {
+  font-style: normal;
+  color: #8fb0ff;
+}
+.auth-hero > p {
+  color: #c9cfcb;
+  font-size: 17px;
+  max-width: 34ch;
+  margin-bottom: 26px;
+}
+.auth-sample {
+  max-width: 330px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(6px);
+  transform: rotate(-1.5deg);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+.auth-sample p {
+  margin: 0;
+}
+.auth-sample-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.auth-sample-tag {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #c9cfcb;
+}
+.auth-sample-price {
+  font-weight: 700;
+}
+.auth-sample-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px !important;
+}
+.auth-sample-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 8px;
+  border-radius: 999px;
+  background: #d9f2ea;
+  color: var(--approved);
+  font-size: 14px;
+  font-weight: 700;
+}
+.auth-panel {
+  position: relative;
+  margin-top: auto;
+  padding: 28px 22px calc(28px + env(safe-area-inset-bottom));
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.3);
+}
+/* Later steps: the panel sits higher, with no hero above it. */
+.auth-panel-solo {
+  margin-top: 28px;
+  flex: 1;
+}
+.auth-title {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+.auth-title + form {
+  margin-top: 14px;
+}
+.auth-sub {
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+.auth-step {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.auth-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: #eaf0ff;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+.auth-panel .stack {
+  margin-top: 4px;
+}
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+.link-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  min-height: var(--touch);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+}
+.link-btn:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+.auth-fine {
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+@media (min-width: 720px) {
+  .auth {
+    align-items: center;
+  }
+  .auth-top {
+    align-self: stretch;
+  }
+  .auth-hero {
+    width: 100%;
+    max-width: 560px;
+    padding-top: 64px;
+  }
+  .auth-panel {
+    width: 100%;
+    max-width: 560px;
+    margin: 0 0 48px;
+    border-radius: 28px;
+  }
+  .auth-panel-solo {
+    margin-top: 64px;
+    flex: 0;
+  }
 }
