@@ -40,15 +40,18 @@ v1 is a pilot: one contractor, one real job. See the build brief for scope.
    ```
 3. **Auth > Sign In / Providers > Email**: leave Email enabled. Turn off
    "Confirm email" if you want first sign-in to be a single step.
-4. **Auth > Email Templates > Magic Link**: the app signs in with a code,
-   so the email must include the code. Replace the body with something like:
+4. **Auth > Email Templates > Magic Link** (only editable once custom SMTP
+   is set up, see step 6). Until then Supabase's default email sends a
+   sign-in link, which the app accepts. With SMTP in place, switch to a code,
+   which works better when the app is installed on the home screen. Replace the body with something like:
    ```html
    <h2>Your JobThread sign-in code</h2>
    <p>Enter this code in JobThread: <strong>{{ .Token }}</strong></p>
    <p>It expires in an hour. If you didn't ask for it, ignore this email.</p>
    ```
    Do the same for the **Confirm signup** template, which new users get.
-5. **Auth > URL Configuration**: set the Site URL to your Netlify URL.
+5. **Auth > URL Configuration**: set the Site URL to your Netlify URL, so
+   sign-in links come back to the app.
 6. Supabase's built-in email sender is heavily rate limited. Before the pilot,
    set up custom SMTP (**Project Settings > Auth > SMTP**), e.g. Resend or
    Postmark.
