@@ -1,0 +1,20 @@
+# Netlify settings for the jobthread.ca landing page. Set this folder
+# ("landing") as the base directory of its own Netlify site. Plain HTML: no
+# build step.
+[build]
+  publish = "."
+  command = ""
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "DENY"
+
+# www and the netlify.app address both go to the main domain.
+[[redirects]]
+  from = "https://www.jobthread.ca/*"
+  to = "https://jobthread.ca/:splat"
+  status = 301
+  force = true
