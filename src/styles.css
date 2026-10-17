@@ -95,6 +95,19 @@ a {
   font-stretch: 75%; /* Archivo's condensed width, as in the logo lockup */
   letter-spacing: -0.01em;
 }
+.header-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch);
+  height: var(--touch);
+  color: #fff;
+  border-radius: 999px;
+}
+.header-icon:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -4px;
+}
 .header-btn {
   background: none;
   border: 0;
@@ -708,6 +721,18 @@ textarea:focus {
 .nav-item.active .nav-pill {
   background: var(--ink);
   color: #fff;
+}
+/* Today: the main button, raised in the middle */
+.nav-item.main .nav-pill {
+  width: 56px;
+  height: 56px;
+  margin-top: -22px;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 0 4px var(--card), 0 4px 10px rgba(27, 31, 29, 0.25);
+}
+.nav-item.main.active .nav-pill {
+  background: var(--accent-hover);
 }
 
 /* ---------------------------------------------------------------- shared bits */
