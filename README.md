@@ -106,6 +106,16 @@ publish `dist`) and the SPA fallback that makes `/a/:token` work on a direct
 load. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` under **Site
 configuration > Environment variables**, then redeploy.
 
+### Branches and previews
+
+- `main` is what clients and the pilot contractor use. Netlify deploys it to
+  https://jobthread-br0p.netlify.app.
+- New work goes on a separate branch. Netlify builds each branch at
+  `<branch>--jobthread-br0p.netlify.app` for testing before it's merged.
+- Previews and the live site share one Supabase project. Apply database
+  migrations before pushing code that needs them. Migrations are additive,
+  so the live app keeps working.
+
 ## Tests
 
 ```sh
