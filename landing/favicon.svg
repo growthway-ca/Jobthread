@@ -1,10 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="-4 -4 128 128">
-  <rect x="-4" y="-4" width="128" height="128" rx="28.16" fill="#FFD21F"/>
-  <g fill="#111111">
-    <path fill-rule="evenodd" d="M22 16 H98 Q110 16 110 28 V74 Q110 86 98 86 H40 L14 108 L20 86 H22 Q10 86 10 74 V28 Q10 16 22 16 Z M25 27 H95 Q99 27 99 31 V71 Q99 75 95 75 H25 Q21 75 21 71 V31 Q21 27 25 27 Z"/>
-    <rect x="31" y="35" width="58" height="9" rx="4.5"/>
-    <rect x="31" y="48" width="58" height="9" rx="4.5"/>
-    <rect x="31" y="61" width="32" height="9" rx="4.5"/>
-    <path d="M46 85 l5 14 l12 -14 Z M64 85 l5 14 l12 -14 Z M82 85 l5 14 l12 -14 Z"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="-10 -10 120 120">
+  <rect x="-10" y="-10" width="120" height="120" rx="26.4" fill="#1F4FD1"/>
+  <path d="M 33 12 H 67 Q 73 12 73 18 V 30 Q 73 36 67 36 H 45 L 36 43 L 37 36 H 33 Q 27 36 27 30 V 18 Q 27 12 33 12 Z" fill="#FFFFFF"/>
+  <path d="M 54 45 V 71 Q 54 87 38 87 H 34" fill="none" stroke="#FFFFFF" stroke-width="14"/>
+  <circle cx="34" cy="87" r="7" fill="#FFFFFF"/>
 </svg>
