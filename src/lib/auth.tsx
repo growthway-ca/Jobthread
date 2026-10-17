@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const { data } = await supabase
       .from('contractors')
-      .select('id, name, business_name, phone, etransfer_email, google_review_url')
+      .select('id, name, business_name, phone, etransfer_email, google_review_url, google_rating, google_review_count, credentials')
       .eq('id', s.user.id)
       .maybeSingle();
     setContractor(data ?? null);

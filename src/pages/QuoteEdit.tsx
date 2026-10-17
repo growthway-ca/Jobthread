@@ -9,6 +9,7 @@ import type { Quote, QuoteOption } from '../lib/types';
 
 interface OptionDraft {
   key: string;
+  kind: 'addon' | 'package';
   title: string;
   detail: string;
   price: string;
@@ -27,8 +28,8 @@ function isoDate(d: Date): string {
   return local.toISOString().slice(0, 10);
 }
 
-function blankOption(): OptionDraft {
-  return { key: crypto.randomUUID(), title: '', detail: '', price: '', recommended: false };
+function blankOption(kind: OptionDraft['kind']): OptionDraft {
+  return { key: crypto.randomUUID(), kind, title: '', detail: '', price: '', recommended: false };
 }
 
 /** New quote, or edit a draft (/quotes/:quoteId/edit). Sent quotes are locked. */
@@ -91,6 +92,7 @@ export function QuoteEdit() {
             .sort((a, b) => a.position - b.position)
             .map((o) => ({
               key: o.id,
+              kind: o.kind ?? 'addon',
               title: o.title,
               detail: o.detail ?? '',
               price: (o.price_cents / 100).toFixed(2),
@@ -104,6 +106,8 @@ export function QuoteEdit() {
     setOptions((current) => current.map((o) => (o.key === key ? { ...o, ...values } : o)));
   }
 
+  const packages = options.filter((o) => o.kind === 'package');
+  const addons = options.filter((o) => o.kind === 'addon');
   const baseCents = parseDollars(base) ?? 0;
   const recommendedCents = options
     .filter((o) => o.recommended)
@@ -114,6 +118,9 @@ export function QuoteEdit() {
     const baseValue = parseDollars(base);
     if (baseValue === null || baseValue < 0) return setError('Enter the base price in dollars, before tax.');
     const cleanOptions = options.filter((o) => o.title.trim() || o.price.trim());
+    const cleanPackages = cleanOptions.filter((o) => o.kind === 'package');
+    if (cleanPackages.length === 1) return setError('Add at least two packages, or turn the one into an add-on.');
+    if (cleanPackages.length > 1 && !cleanPackages.some((o) => o.recommended)) cleanPackages[0].recommended = true;
     for (const o of cleanOptions) {
       if (!o.title.trim()) return setError('Give every option a name, or remove it.');
       if (parseDollars(o.price) === null) return setError(`Enter a price for “${o.title.trim()}”.`);
@@ -151,6 +158,7 @@ export function QuoteEdit() {
             detail: o.detail.trim() || null,
             price_cents: parseDollars(o.price) ?? 0,
             recommended: o.recommended,
+            kind: o.kind,
           })),
         );
         if (error) throw error;
@@ -207,59 +215,60 @@ export function QuoteEdit() {
         </label>
 
         <fieldset className="field chips-field">
-          <legend>Options the client can add</legend>
-          {options.length === 0 && (
+          <legend>Packages (optional)</legend>
+          {packages.length === 0 && (
+            <p className="hint">
+              Good, Better, Best: whole versions of the job at different prices. The client picks one. Leave the base
+              price at 0 if each package has its full price.
+            </p>
+          )}
+          <div className="stack">
+            {packages.map((o, i) => (
+              <OptionCard
+                key={o.key}
+                option={o}
+                index={i}
+                onChange={(values) => updateOption(o.key, values)}
+                onRemove={() => setOptions((current) => current.filter((x) => x.key !== o.key))}
+                onPickDefault={() =>
+                  setOptions((current) =>
+                    current.map((x) => (x.kind === 'package' ? { ...x, recommended: x.key === o.key } : x)),
+                  )
+                }
+              />
+            ))}
+            <button
+              type="button"
+              className="btn secondary"
+              onClick={() =>
+                setOptions((c) => [
+                  ...c,
+                  { ...blankOption('package'), title: ['Good', 'Better', 'Best'][packages.length] ?? '', recommended: packages.length === 0 },
+                ])
+              }
+            >
+              Add a package
+            </button>
+          </div>
+        </fieldset>
+
+        <fieldset className="field chips-field">
+          <legend>Add-ons the client can tick</legend>
+          {addons.length === 0 && (
             <p className="hint">Upgrades or extras, like an insulated subfloor. The client ticks the ones they want.</p>
           )}
           <div className="stack">
-            {options.map((o, i) => (
-              <div key={o.key} className="card option-edit">
-                <div className="option-edit-row">
-                  <input
-                    aria-label={`Option ${i + 1} name`}
-                    placeholder="Insulated subfloor"
-                    maxLength={120}
-                    value={o.title}
-                    onChange={(e) => updateOption(o.key, { title: e.target.value })}
-                  />
-                  <div className="money-input narrow">
-                    <span aria-hidden="true">$</span>
-                    <input
-                      aria-label={`Option ${i + 1} price`}
-                      inputMode="decimal"
-                      value={o.price}
-                      onChange={(e) => updateOption(o.key, { price: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <input
-                  aria-label={`Option ${i + 1} details`}
-                  placeholder="Warmer floor, about 1 in. higher"
-                  maxLength={300}
-                  value={o.detail}
-                  onChange={(e) => updateOption(o.key, { detail: e.target.value })}
-                />
-                <div className="option-edit-foot">
-                  <label className="check-row small">
-                    <input
-                      type="checkbox"
-                      checked={o.recommended}
-                      onChange={(e) => updateOption(o.key, { recommended: e.target.checked })}
-                    />
-                    <span>Ticked to start</span>
-                  </label>
-                  <button
-                    type="button"
-                    className="btn small plain danger"
-                    onClick={() => setOptions((current) => current.filter((x) => x.key !== o.key))}
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
+            {addons.map((o, i) => (
+              <OptionCard
+                key={o.key}
+                option={o}
+                index={i}
+                onChange={(values) => updateOption(o.key, values)}
+                onRemove={() => setOptions((current) => current.filter((x) => x.key !== o.key))}
+              />
             ))}
-            <button type="button" className="btn secondary" onClick={() => setOptions((c) => [...c, blankOption()])}>
-              Add an option
+            <button type="button" className="btn secondary" onClick={() => setOptions((c) => [...c, blankOption('addon')])}>
+              Add an add-on
             </button>
           </div>
         </fieldset>
@@ -300,6 +309,9 @@ export function QuoteEdit() {
               <span className="money">{formatMoney(recommendedCents, { alwaysCents: true })}</span>
             </div>
           )}
+          {packages.length > 0 && (
+            <p className="muted small">Starting total uses the package picked to start.</p>
+          )}
           <div className="line grand">
             <span>Starting total</span>
             <span className="money">{formatMoney(baseCents + recommendedCents, { alwaysCents: true })}</span>
@@ -313,5 +325,62 @@ export function QuoteEdit() {
         </button>
       </form>
     </Page>
+  );
+}
+
+function OptionCard({
+  option: o,
+  index,
+  onChange,
+  onRemove,
+  onPickDefault,
+}: {
+  option: OptionDraft;
+  index: number;
+  onChange: (values: Partial<OptionDraft>) => void;
+  onRemove: () => void;
+  onPickDefault?: () => void;
+}) {
+  const isPackage = o.kind === 'package';
+  const noun = isPackage ? 'Package' : 'Add-on';
+  return (
+    <div className={`card option-edit ${isPackage && o.recommended ? 'picked' : ''}`}>
+      <div className="option-edit-row">
+        <input
+          aria-label={`${noun} ${index + 1} name`}
+          placeholder={isPackage ? 'Better' : 'Insulated subfloor'}
+          maxLength={120}
+          value={o.title}
+          onChange={(e) => onChange({ title: e.target.value })}
+        />
+        <div className="money-input narrow">
+          <span aria-hidden="true">$</span>
+          <input aria-label={`${noun} ${index + 1} price`} inputMode="decimal" value={o.price} onChange={(e) => onChange({ price: e.target.value })} />
+        </div>
+      </div>
+      <input
+        aria-label={`${noun} ${index + 1} details`}
+        placeholder={isPackage ? 'Standard LVP, paint-grade trim, no subfloor' : 'Warmer floor, about 1 in. higher'}
+        maxLength={300}
+        value={o.detail}
+        onChange={(e) => onChange({ detail: e.target.value })}
+      />
+      <div className="option-edit-foot">
+        {isPackage ? (
+          <label className="check-row small">
+            <input type="radio" name="default-package" checked={o.recommended} onChange={() => onPickDefault?.()} />
+            <span>Picked to start</span>
+          </label>
+        ) : (
+          <label className="check-row small">
+            <input type="checkbox" checked={o.recommended} onChange={(e) => onChange({ recommended: e.target.checked })} />
+            <span>Ticked to start</span>
+          </label>
+        )}
+        <button type="button" className="btn small plain danger" onClick={onRemove}>
+          Remove
+        </button>
+      </div>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { supabase, approvalLink, publicBaseUrl } from '../lib/supabase';
 import { errorMessage } from '../lib/format';
@@ -7,6 +7,8 @@ import { changeMessage, firstName, NO_SCHEDULE_CHANGE, smsHref } from '../lib/sm
 import { useJob } from '../lib/useJob';
 import { ErrorNote, Loading, Page } from '../components/Layout';
 import { SendActions } from '../components/SendActions';
+import { preparePhoto, uploadChangePhoto, type PreparedPhoto } from '../lib/photos';
+import { REASON_LABELS, type ChangeReason } from '../lib/types';
 
 type Schedule = 'none' | 'half' | 'day' | 'other';
 
@@ -39,6 +41,30 @@ export function NewChange() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState<SentChange | null>(null);
+  const [reason, setReason] = useState<ChangeReason>('client_asked');
+  const [trade, setTrade] = useState('');
+  const [photo, setPhoto] = useState<PreparedPhoto | null>(null);
+  const [subNames, setSubNames] = useState<string[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from('subcontractors')
+      .select('name, trade')
+      .then(({ data }) =>
+        setSubNames(Array.from(new Set((data ?? []).flatMap((s) => [s.trade, s.name]).filter(Boolean) as string[]))),
+      );
+  }, []);
+
+  async function pickPhoto(files: FileList | null) {
+    const file = files?.[0];
+    if (!file) return;
+    try {
+      if (photo) URL.revokeObjectURL(photo.previewUrl);
+      setPhoto(await preparePhoto(file));
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  }
 
   if (!data) {
     return (
@@ -71,6 +97,16 @@ export function NewChange() {
     setBusy(true);
     setError(null);
 
+    let photoPath: string | null = null;
+    if (photo) {
+      try {
+        photoPath = await uploadChangePhoto(job.id, photo);
+      } catch (err) {
+        setBusy(false);
+        return setError(errorMessage(err));
+      }
+    }
+
     const { data: row, error } = await supabase
       .from('changes')
       .insert({
@@ -78,6 +114,9 @@ export function NewChange() {
         description: description.trim(),
         price_cents: priceCents,
         time_added: timeAdded.trim() || null,
+        reason,
+        trade: trade.trim() || null,
+        photo_path: photoPath,
         status: 'sent',
       })
       .select('number, approval_token')
@@ -127,7 +166,7 @@ export function NewChange() {
       </Link>
       <h1>New change</h1>
       <p className="muted">
-        Change #{nextNumber} for {client.name}. Once sent, it can’t be edited. To fix a mistake, void it and send a new
+        Change #{nextNumber} for {client.name.replace(/\.$/, '')}. Once sent, it can’t be edited. To fix a mistake, void it and send a new
         one.
       </p>
       <form onSubmit={send} className="stack">
@@ -150,6 +189,56 @@ export function NewChange() {
           </div>
           <span className="hint">For a credit, put a minus sign in front.</span>
         </label>
+        <fieldset className="field chips-field">
+          <legend>Why</legend>
+          <div className="chips">
+            {(Object.keys(REASON_LABELS) as ChangeReason[]).map((r) => (
+              <button
+                key={r}
+                type="button"
+                className={reason === r ? 'chip selected' : 'chip'}
+                aria-pressed={reason === r}
+                onClick={() => setReason(r)}
+              >
+                {REASON_LABELS[r]}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+        <label className="field">
+          <span>Who does it (optional)</span>
+          <input list="trade-list" maxLength={80} placeholder="Electrician" value={trade} onChange={(e) => setTrade(e.target.value)} />
+          <datalist id="trade-list">
+            {subNames.map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
+        </label>
+        <div className="field">
+          <span>Photo of the spot (optional)</span>
+          {photo ? (
+            <div className="photo single">
+              <img src={photo.previewUrl} alt="" />
+              <button
+                type="button"
+                className="photo-remove"
+                aria-label="Remove photo"
+                onClick={() => {
+                  URL.revokeObjectURL(photo.previewUrl);
+                  setPhoto(null);
+                }}
+              >
+                ×
+              </button>
+            </div>
+          ) : (
+            <label className="photo-add">
+              <input type="file" accept="image/*" onChange={(e) => void pickPhoto(e.target.files)} />
+              <span>Add a photo of the spot</span>
+            </label>
+          )}
+          <span className="hint">{firstName(client.name) || 'The client'} sees it on the approval page.</span>
+        </div>
         <fieldset className="field chips-field">
           <legend>Schedule</legend>
           <div className="chips">

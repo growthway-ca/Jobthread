@@ -11,6 +11,9 @@ export function Settings() {
   const [phone, setPhone] = useState(contractor?.phone ?? '');
   const [etransfer, setEtransfer] = useState(contractor?.etransfer_email ?? '');
   const [reviewUrl, setReviewUrl] = useState(contractor?.google_review_url ?? '');
+  const [rating, setRating] = useState(contractor?.google_rating?.toString() ?? '');
+  const [reviewCount, setReviewCount] = useState(contractor?.google_review_count?.toString() ?? '');
+  const [credentials, setCredentials] = useState(contractor?.credentials ?? '');
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +21,10 @@ export function Settings() {
   async function save(e: FormEvent) {
     e.preventDefault();
     if (!contractor) return;
+    const ratingValue = rating.trim() ? Number(rating) : null;
+    if (ratingValue !== null && (Number.isNaN(ratingValue) || ratingValue < 1 || ratingValue > 5)) {
+      return setError('Google rating should be between 1 and 5, like 4.9.');
+    }
     setBusy(true);
     setSaved(false);
     setError(null);
@@ -29,6 +36,9 @@ export function Settings() {
         phone: phone.trim(),
         etransfer_email: etransfer.trim() || null,
         google_review_url: reviewUrl.trim() || null,
+        google_rating: ratingValue === null ? null : Math.round(ratingValue * 10) / 10,
+        google_review_count: reviewCount.trim() ? Math.max(0, Math.round(Number(reviewCount))) || 0 : null,
+        credentials: credentials.trim() || null,
       })
       .eq('id', contractor.id);
     setBusy(false);
@@ -65,6 +75,21 @@ export function Settings() {
           <span className="hint">
             On Google, search your business, tap Ask for reviews (or Share review form) and copy the link.
           </span>
+        </label>
+        <div className="date-row">
+          <label className="field">
+            <span>Google rating</span>
+            <input inputMode="decimal" placeholder="4.9" value={rating} onChange={(e) => setRating(e.target.value)} />
+          </label>
+          <label className="field">
+            <span>Number of reviews</span>
+            <input inputMode="numeric" placeholder="37" value={reviewCount} onChange={(e) => setReviewCount(e.target.value)} />
+          </label>
+        </div>
+        <label className="field">
+          <span>Credentials</span>
+          <input maxLength={120} placeholder="Licensed and insured" value={credentials} onChange={(e) => setCredentials(e.target.value)} />
+          <span className="hint">Rating, reviews and credentials show at the top of your proposals. Keep them current.</span>
         </label>
         <ErrorNote message={error} />
         {saved && (

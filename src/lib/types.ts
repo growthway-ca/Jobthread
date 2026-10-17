@@ -17,6 +17,9 @@ export interface Contractor {
   phone: string;
   etransfer_email: string | null;
   google_review_url: string | null;
+  google_rating: number | null;
+  google_review_count: number | null;
+  credentials: string | null;
 }
 
 export interface Client {
@@ -46,6 +49,7 @@ export interface Job {
   review_received_at: string | null;
   checkin_6m_at: string | null;
   checkin_12m_at: string | null;
+  photo_consent_at: string | null;
   created_at: string;
 }
 
@@ -61,8 +65,18 @@ export interface Change {
   sent_at: string | null;
   approved_at: string | null;
   approved_name: string | null;
+  reason: ChangeReason | null;
+  trade: string | null;
+  photo_path: string | null;
   created_at: string;
 }
+
+export type ChangeReason = 'client_asked' | 'found_on_site' | 'inspector';
+export const REASON_LABELS: Record<ChangeReason, string> = {
+  client_asked: 'Client asked',
+  found_on_site: 'Found on site',
+  inspector: 'Inspector',
+};
 
 export interface JobEvent {
   id: string;
@@ -90,6 +104,9 @@ export interface ClientChange {
   sent_at: string | null;
   approved_at: string | null;
   approved_name: string | null;
+  reason: ChangeReason | null;
+  trade: string | null;
+  photo_path: string | null;
 }
 
 export type MilestoneStatus = 'upcoming' | 'requested' | 'paid';
@@ -144,6 +161,7 @@ export interface Quote {
 export interface QuoteOption {
   id: string;
   quote_id: string;
+  kind: 'addon' | 'package';
   position: number;
   title: string;
   detail: string | null;
@@ -157,6 +175,9 @@ export interface ClientQuote {
   status: QuoteStatus;
   business_name: string;
   contractor_phone: string;
+  google_rating?: number | null;
+  google_review_count?: number | null;
+  credentials?: string | null;
   client_name?: string;
   number?: number;
   title?: string;
@@ -172,6 +193,7 @@ export interface ClientQuote {
   accepted_name?: string | null;
   options?: {
     id: string;
+    kind: 'addon' | 'package';
     title: string;
     detail: string | null;
     price_cents: number;
@@ -244,5 +266,72 @@ export interface Lead {
   source: 'manual' | 'referral';
   referred_by_client_id: string | null;
   status: 'new' | 'contacted' | 'quoted' | 'closed';
+  created_at: string;
+}
+
+export interface JobSite {
+  job_id: string;
+  parking: string | null;
+  access: string | null;
+  access_code: string | null;
+  heads_up: string | null;
+  washroom: string | null;
+  water: string | null;
+  power: string | null;
+  notes: string | null;
+  updated_at: string;
+}
+
+export interface JobSheet {
+  id: string;
+  job_id: string;
+  token: string;
+  trade_name: string;
+  trade_phone: string | null;
+  schedule_item_id: string | null;
+  title: string | null;
+  closed_at: string | null;
+  created_at: string;
+}
+
+export interface JobSheetView {
+  id: string;
+  sheet_id: string;
+  kind: 'opened' | 'code';
+  viewer_name: string | null;
+  viewed_at: string;
+}
+
+/** JSON returned by get_job_sheet: what a trade sees. */
+export interface PublicJobSheet {
+  closed: boolean;
+  business_name: string;
+  contractor_name?: string;
+  contractor_phone?: string;
+  trade_name?: string;
+  title?: string | null;
+  starts_on?: string | null;
+  ends_on?: string | null;
+  address?: string | null;
+  job_title?: string;
+  parking?: string | null;
+  access?: string | null;
+  has_code?: boolean;
+  heads_up?: string | null;
+  washroom?: string | null;
+  water?: string | null;
+  power?: string | null;
+  notes?: string | null;
+}
+
+export interface Subcontractor {
+  id: string;
+  name: string;
+  trade: string | null;
+  phone: string | null;
+  email: string | null;
+  wsib_expires_on: string | null;
+  insurance_expires_on: string | null;
+  notes: string | null;
   created_at: string;
 }

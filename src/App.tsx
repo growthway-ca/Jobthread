@@ -15,6 +15,10 @@ import { ShareJob } from './pages/ShareJob';
 import { Today } from './pages/Today';
 import { Grow } from './pages/Grow';
 import { Referral } from './pages/Referral';
+import { SiteInfo } from './pages/SiteInfo';
+import { JobSheetPage } from './pages/JobSheetPage';
+import { Subs } from './pages/Subs';
+import { BeforeAfter } from './pages/BeforeAfter';
 import { Settings } from './pages/Settings';
 import { EditJob } from './pages/EditJob';
 import { NewDailyLog } from './pages/NewDailyLog';
@@ -33,6 +37,7 @@ export function App() {
         <Route path="/p/:token" element={<Proposal />} />
         <Route path="/j/:token" element={<ClientProject />} />
         <Route path="/r/:token" element={<Referral />} />
+        <Route path="/s/:token" element={<JobSheetPage />} />
         <Route
           path="/*"
           element={
@@ -68,6 +73,8 @@ function ContractorApp() {
       <Route path="/jobs/:jobId/changes/new" element={<NewChange />} />
       <Route path="/jobs/:jobId/edit" element={<EditJob />} />
       <Route path="/jobs/:jobId/share" element={<ShareJob />} />
+      <Route path="/jobs/:jobId/site" element={<SiteInfo />} />
+      <Route path="/jobs/:jobId/post" element={<BeforeAfter />} />
       <Route path="/jobs/:jobId/log/new" element={<NewDailyLog />} />
       <Route path="/quotes" element={<Quotes />} />
       <Route path="/quotes/new" element={<QuoteEdit />} />
@@ -75,6 +82,7 @@ function ContractorApp() {
       <Route path="/quotes/:quoteId/edit" element={<QuoteEdit />} />
       <Route path="/money" element={<Money />} />
       <Route path="/settings" element={<Settings />} />
+      <Route path="/subs" element={<Subs />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

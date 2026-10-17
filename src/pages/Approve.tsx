@@ -5,7 +5,8 @@ import { formatWhenSentence } from '../lib/format';
 import { formatMoney, taxCents, taxLabel } from '../lib/money';
 import { isNoScheduleChange, midSentence, smsHref } from '../lib/sms';
 import { ErrorNote, Header, Loading } from '../components/Layout';
-import type { ClientChange } from '../lib/types';
+import { REASON_LABELS, type ClientChange } from '../lib/types';
+import { changePhotoUrl } from '../lib/photos';
 
 // PLACEHOLDER WORDING. Have a lawyer review before relying on it. Don't
 // describe the approval as legally binding anywhere in the UI.
@@ -123,6 +124,19 @@ function ChangeView({
         </h1>
         {change.job_address && <p className="muted">{change.job_address}</p>}
         <p className="change-desc">{change.description}</p>
+        {(change.reason || change.trade) && (
+          <p className="muted">
+            {change.reason ? REASON_LABELS[change.reason] : ''}
+            {change.reason && change.trade ? ' · done by ' : ''}
+            {!change.reason && change.trade ? 'Done by ' : ''}
+            {change.trade}
+          </p>
+        )}
+        {change.photo_path && (
+          <a href={changePhotoUrl(change.photo_path)} target="_blank" rel="noreferrer" className="photo single">
+            <img src={changePhotoUrl(change.photo_path)} alt="Photo of the spot" />
+          </a>
+        )}
         <div className="totals">
           <div className="line">
             <span>Price</span>

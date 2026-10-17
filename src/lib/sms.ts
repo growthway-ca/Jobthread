@@ -182,3 +182,34 @@ export function leadReplyMessage(m: { leadName: string; contractorName: string; 
   const about = m.project?.trim() ? ` about your ${midSentence(stripEndPunctuation(m.project)).slice(0, 80)}` : '';
   return `${hi}it's ${firstName(m.contractorName) || m.contractorName} from ${m.businessName.trim()}. Thanks for reaching out${about}. When's a good time to come by and take a look?`;
 }
+
+export function sheetMessage(m: {
+  tradeName: string;
+  title: string | null;
+  address: string | null;
+  when: string | null;
+  contractorName: string;
+  businessName: string;
+  link: string;
+}): string {
+  const hi = firstName(m.tradeName) ? `Hi ${firstName(m.tradeName)}, ` : 'Hi, ';
+  const what = m.title?.trim() ? `the ${midSentence(stripEndPunctuation(m.title))}` : 'the job';
+  const where = m.address?.trim() ? ` at ${m.address.trim()}` : '';
+  const when = m.when ? ` (${m.when})` : '';
+  const from = firstName(m.contractorName) ? ` – ${firstName(m.contractorName)}, ${m.businessName.trim()}` : '';
+  return `${hi}here's the job sheet for ${what}${where}${when}: address, how to get in and what to know on site. ${m.link}${from}`;
+}
+
+export function subPaperworkMessage(m: { subName: string; items: string[]; businessName: string }): string {
+  const hi = firstName(m.subName) ? `Hi ${firstName(m.subName)}, ` : 'Hi, ';
+  const what = m.items.length === 2 ? `${m.items[0]} and ${m.items[1]}` : m.items[0];
+  return `${hi}could you send ${m.businessName.trim()} your updated ${what} when you get a chance? Ours on file is expiring. Thanks!`;
+}
+
+export function photoConsentMessage(m: { clientName: string; jobTitle: string; businessName: string }): string {
+  const hi = firstName(m.clientName) ? `Hi ${firstName(m.clientName)}, ` : 'Hi, ';
+  return (
+    `${hi}would you be OK with ${m.businessName.trim()} sharing a before-and-after photo of your ${m.jobTitle.trim()} online? ` +
+    `No address or names, just the space. Totally fine to say no.`
+  );
+}

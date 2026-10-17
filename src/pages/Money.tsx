@@ -4,7 +4,10 @@ import { supabase } from '../lib/supabase';
 import { errorMessage, formatWhen } from '../lib/format';
 import { formatMoney, holdbackCents, jobTotals } from '../lib/money';
 import { ErrorNote, Loading, Page } from '../components/Layout';
-import { PAID_METHOD_LABELS, type Job, type Milestone } from '../lib/types';
+import { PAID_METHOD_LABELS, type Job, type Milestone, type Subcontractor } from '../lib/types';
+import { paperworkStatus } from '../lib/paperwork';
+import { subPaperworkMessage, smsHref } from '../lib/sms';
+import { useAuth } from '../lib/auth';
 
 type JobRow = Job & {
   clients: { name: string } | null;
@@ -18,7 +21,16 @@ const DAY = 24 * 60 * 60 * 1000;
 
 export function Money() {
   const [jobs, setJobs] = useState<JobRow[] | null>(null);
+  const [subs, setSubs] = useState<Subcontractor[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from('subcontractors')
+      .select('*')
+      .order('name')
+      .then(({ data }) => setSubs((data ?? []) as Subcontractor[]));
+  }, []);
 
   useEffect(() => {
     supabase
@@ -114,6 +126,8 @@ export function Money() {
         </section>
       )}
 
+      <SubPaperwork subs={subs} />
+
       {holdbacks.length > 0 && (
         <section className="stack">
           <h2>Holdbacks</h2>
@@ -160,5 +174,44 @@ function MoneyRow({ row, detail }: { row: Row; detail: string }) {
         <span className="money">{formatMoney(row.amount_cents)}</span>
       </Link>
     </li>
+  );
+}
+
+function SubPaperwork({ subs }: { subs: Subcontractor[] }) {
+  const { contractor } = useAuth();
+  const flagged = subs
+    .map((s) => ({ sub: s, status: paperworkStatus(s) }))
+    .filter((x) => x.status.level === 'soon' || x.status.level === 'expired');
+  return (
+    <section className="stack">
+      <div className="title-row">
+        <h2>Sub paperwork</h2>
+        <Link to="/subs" className="btn small plain">
+          {subs.length ? 'All subs' : 'Add subs'}
+        </Link>
+      </div>
+      {subs.length === 0 && <p className="muted small">Track each sub’s WSIB clearance and insurance so nothing lapses mid-job.</p>}
+      {subs.length > 0 && flagged.length === 0 && <p className="muted small">Everything on file is good for the next 30 days.</p>}
+      {flagged.length > 0 && (
+        <ul className="card rows">
+          {flagged.map(({ sub, status }) => (
+            <li key={sub.id} className={`proposal-row ${status.level === 'expired' ? 'flag-expired' : 'flag-soon'}`}>
+              <span className="row-main">
+                <strong>{sub.name}</strong>
+                <span className="waiting-text small">{status.text}</span>
+              </span>
+              {sub.phone && (
+                <a
+                  href={smsHref(sub.phone, subPaperworkMessage({ subName: sub.name, items: status.ask, businessName: contractor?.business_name ?? '' }))}
+                  className="btn small outline"
+                >
+                  Text for new one
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
