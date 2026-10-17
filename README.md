@@ -37,6 +37,15 @@ v1 is a pilot: one contractor, one real job. See the build brief for scope.
   booking deposit to its payment schedule. Sent quotes are locked; changes go
   through **Make a revision**, which withdraws the old link.
 
+- **Client page:** one private link per job (`/j/<token>`) showing what's
+  left to pay, the schedule, payments, changes and daily updates.
+- **Today:** the home screen. New leads, what's on site today, proposals out
+  (with how often each was opened), money waiting, and the week ahead.
+- **Schedule:** dates per job (demo, trades, inspections). Shown on Today and,
+  where marked visible, on the client page.
+- **Grow:** ask for Google reviews when a job is done, send clients a referral
+  link (`/r/<token>`) whose leads land on Today, and 6- and 12-month check-ins.
+
 ## Stack
 
 - Vite + React + TypeScript, React Router, plain CSS (`src/styles.css`)

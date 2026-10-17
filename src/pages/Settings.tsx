@@ -10,6 +10,7 @@ export function Settings() {
   const [businessName, setBusinessName] = useState(contractor?.business_name ?? '');
   const [phone, setPhone] = useState(contractor?.phone ?? '');
   const [etransfer, setEtransfer] = useState(contractor?.etransfer_email ?? '');
+  const [reviewUrl, setReviewUrl] = useState(contractor?.google_review_url ?? '');
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +28,7 @@ export function Settings() {
         business_name: businessName.trim(),
         phone: phone.trim(),
         etransfer_email: etransfer.trim() || null,
+        google_review_url: reviewUrl.trim() || null,
       })
       .eq('id', contractor.id);
     setBusy(false);
@@ -56,6 +58,13 @@ export function Settings() {
           <span>e-Transfer email</span>
           <input type="email" inputMode="email" value={etransfer} onChange={(e) => setEtransfer(e.target.value)} />
           <span className="hint">Added to payment requests so clients know where to send money.</span>
+        </label>
+        <label className="field">
+          <span>Google review link</span>
+          <input type="url" inputMode="url" placeholder="https://g.page/r/…" value={reviewUrl} onChange={(e) => setReviewUrl(e.target.value)} />
+          <span className="hint">
+            On Google, search your business, tap Ask for reviews (or Share review form) and copy the link.
+          </span>
         </label>
         <ErrorNote message={error} />
         {saved && (

@@ -144,3 +144,41 @@ export function quoteMessage(m: {
     `${formatMoney(m.baseCents)} + HST${options}. See it and accept here: ${m.link}`
   );
 }
+
+export function reviewMessage(m: { clientName: string; businessName: string; reviewUrl: string }): string {
+  const hi = firstName(m.clientName) ? `Hi ${firstName(m.clientName)}, ` : 'Hi, ';
+  return (
+    `${hi}thanks for having ${m.businessName.trim()} in your home. If you have a minute, an honest Google review ` +
+    `helps a small shop like ours more than anything: ${m.reviewUrl.trim()}`
+  );
+}
+
+export function reviewReminderMessage(m: { clientName: string; reviewUrl: string }): string {
+  const hi = firstName(m.clientName) ? `Hi ${firstName(m.clientName)}, ` : 'Hi, ';
+  return `${hi}just a gentle reminder about that Google review, only if you have a moment. Thanks again: ${m.reviewUrl.trim()}`;
+}
+
+export function referralMessage(m: { clientName: string; businessName: string; link: string }): string {
+  const hi = firstName(m.clientName) ? `Hi ${firstName(m.clientName)}, ` : 'Hi, ';
+  return (
+    `${hi}if a friend or neighbour is planning a project, they can send ${m.businessName.trim()} the details here ` +
+    `and we'll know you sent them: ${m.link}`
+  );
+}
+
+export function checkinMessage(m: { clientName: string; jobTitle: string; months: 6 | 12 }): string {
+  const hi = firstName(m.clientName) ? `Hi ${firstName(m.clientName)}, ` : 'Hi, ';
+  const when = m.months === 6 ? 'six months' : 'a year';
+  return `${hi}it's been ${when} since we finished your ${m.jobTitle.trim()}. How's everything holding up? If anything needs a look, just reply here.`;
+}
+
+export function quoteNudgeMessage(m: { clientName: string; title: string; link: string }): string {
+  const hi = firstName(m.clientName) ? `Hi ${firstName(m.clientName)}, ` : 'Hi, ';
+  return `${hi}just checking you got the quote for your ${m.title.trim()}. Happy to answer any questions. Here it is again: ${m.link}`;
+}
+
+export function leadReplyMessage(m: { leadName: string; contractorName: string; businessName: string; project: string | null }): string {
+  const hi = firstName(m.leadName) ? `Hi ${firstName(m.leadName)}, ` : 'Hi, ';
+  const about = m.project?.trim() ? ` about your ${midSentence(stripEndPunctuation(m.project)).slice(0, 80)}` : '';
+  return `${hi}it's ${firstName(m.contractorName) || m.contractorName} from ${m.businessName.trim()}. Thanks for reaching out${about}. When's a good time to come by and take a look?`;
+}

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import { errorMessage } from './format';
 import { signedPhotoUrls } from './photos';
-import type { Change, Client, Job, JobEvent, JobPhoto, Milestone } from './types';
+import type { Change, Client, Job, JobEvent, JobPhoto, Milestone, ScheduleItem } from './types';
 
 export interface JobData {
   job: Job;
@@ -11,6 +11,7 @@ export interface JobData {
   events: JobEvent[];
   milestones: Milestone[];
   photos: JobPhoto[];
+  schedule: ScheduleItem[];
   /** storage_path -> signed URL, valid for an hour. */
   photoUrls: Record<string, string>;
 }
@@ -27,15 +28,16 @@ export function useJob(jobId: string | undefined) {
 
   const reload = useCallback(async () => {
     if (!jobId) return;
-    const [jobRes, changesRes, eventsRes, milestonesRes, photosRes] = await Promise.all([
+    const [jobRes, changesRes, eventsRes, milestonesRes, photosRes, scheduleRes] = await Promise.all([
       supabase.from('jobs').select('*, clients(*)').eq('id', jobId).maybeSingle(),
       supabase.from('changes').select('*').eq('job_id', jobId).order('number'),
       supabase.from('job_events').select('*').eq('job_id', jobId).order('created_at', { ascending: false }),
       supabase.from('payment_milestones').select('*').eq('job_id', jobId).order('position'),
       supabase.from('job_photos').select('*').eq('job_id', jobId).order('created_at'),
+      supabase.from('job_schedule').select('*').eq('job_id', jobId).order('starts_on').order('created_at'),
     ]);
     const firstError =
-      jobRes.error ?? changesRes.error ?? eventsRes.error ?? milestonesRes.error ?? photosRes.error;
+      jobRes.error ?? changesRes.error ?? eventsRes.error ?? milestonesRes.error ?? photosRes.error ?? scheduleRes.error;
     if (firstError) {
       setError(errorMessage(firstError));
       return;
@@ -56,6 +58,7 @@ export function useJob(jobId: string | undefined) {
       milestones: (milestonesRes.data ?? []) as Milestone[],
       photos,
       photoUrls,
+      schedule: (scheduleRes.data ?? []) as ScheduleItem[],
     });
   }, [jobId]);
 

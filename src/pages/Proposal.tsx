@@ -24,6 +24,11 @@ export function Proposal() {
       if (error) return setState({ kind: 'error' });
       setState(data ? { kind: 'ready', quote: data as ClientQuote } : { kind: 'missing' });
     });
+    // Count the client's views for "Opened 3 times", but not the contractor
+    // checking their own proposal while signed in.
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) void supabase.rpc('record_quote_view', { p_token: token });
+    });
   }, [token]);
 
   return (
