@@ -16,7 +16,7 @@ export function SignIn() {
     setError(null);
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { shouldCreateUser: true },
+      options: { shouldCreateUser: true, emailRedirectTo: window.location.origin },
     });
     setBusy(false);
     if (error) return setError(errorMessage(error));
@@ -46,7 +46,7 @@ export function SignIn() {
         <h1>Sign in</h1>
         {step === 'email' ? (
           <form onSubmit={sendCode} className="stack">
-            <p className="muted">We’ll email you a code. No password needed.</p>
+            <p className="muted">We’ll email you a sign-in link. No password needed.</p>
             <label className="field">
               <span>Email</span>
               <input
@@ -60,13 +60,14 @@ export function SignIn() {
             </label>
             <ErrorNote message={error} />
             <button className="btn primary" disabled={busy}>
-              {busy ? 'Sending…' : 'Email me a code'}
+              {busy ? 'Sending…' : 'Email me a sign-in link'}
             </button>
           </form>
         ) : (
           <form onSubmit={verify} className="stack">
             <p className="muted">
-              Enter the code we sent to <strong>{email}</strong>.
+              We sent an email to <strong>{email}</strong>. Tap the sign-in link in it, or enter the code if it has
+              one.
             </p>
             <label className="field">
               <span>Code</span>

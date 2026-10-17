@@ -6,7 +6,15 @@ const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 export const isConfigured = Boolean(url && anonKey);
 
 export const supabase = createClient(url ?? 'http://localhost', anonKey ?? 'missing', {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    // Supabase's default email (until custom SMTP is set up) sends a sign-in
+    // link, not a code. The implicit flow lets that link sign in from
+    // whichever browser the phone's email app opens it in.
+    detectSessionInUrl: true,
+    flowType: 'implicit',
+  },
 });
 
 /** Base URL used in approval links sent to clients. */
