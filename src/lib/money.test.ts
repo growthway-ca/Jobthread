@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatMoney, jobTotals, parseDollars } from './money';
+import { formatMoney, jobTotals, parseDollars, paymentTotals } from './money';
 
 describe('parseDollars', () => {
   it.each([
@@ -38,5 +38,22 @@ describe('jobTotals', () => {
     expect(t.taxCents).toBe(336050);
     expect(t.totalCents).toBe(2921050);
     expect(t.pendingCents).toBe(120000);
+  });
+});
+
+describe('paymentTotals', () => {
+  it('splits paid, requested and what is left', () => {
+    const t = paymentTotals(8000000, [
+      { status: 'paid', amount_cents: 1000000 },
+      { status: 'requested', amount_cents: 2000000 },
+      { status: 'upcoming', amount_cents: 3000000 },
+    ]);
+    expect(t).toEqual({
+      scheduledCents: 6000000,
+      paidCents: 1000000,
+      requestedCents: 2000000,
+      leftCents: 7000000,
+      unscheduledCents: 2000000,
+    });
   });
 });

@@ -94,3 +94,43 @@ export async function copyText(text: string): Promise<boolean> {
     return ok;
   }
 }
+
+const shortDate = new Intl.DateTimeFormat('en-CA', { month: 'short', day: 'numeric' });
+
+export function dailyLogMessage(m: { clientName: string; jobTitle: string; body: string; when: Date }): string {
+  const hi = firstName(m.clientName) ? `Hi ${firstName(m.clientName)}, ` : '';
+  return `${hi}update on your ${m.jobTitle.trim()}, ${shortDate.format(m.when)}: ${m.body.trim()}`;
+}
+
+export function paymentRequestMessage(m: {
+  clientName: string;
+  jobTitle: string;
+  title: string;
+  amountCents: number;
+  taxRate: number;
+  etransferEmail: string | null;
+}): string {
+  const hi = firstName(m.clientName) ? `Hi ${firstName(m.clientName)}, ` : 'Hi, ';
+  const tax = Math.round(m.amountCents * Number(m.taxRate));
+  const how = m.etransferEmail?.trim() ? ` You can e-Transfer it to ${m.etransferEmail.trim()}.` : '';
+  return (
+    `${hi}a payment is due for your ${m.jobTitle.trim()}: ${stripEndPunctuation(m.title)}. ` +
+    `${formatMoney(m.amountCents)} + HST = ${formatMoney(m.amountCents + tax, { alwaysCents: true })}.${how} Thank you!`
+  );
+}
+
+export function quoteMessage(m: {
+  clientName: string;
+  businessName: string;
+  title: string;
+  baseCents: number;
+  hasOptions: boolean;
+  link: string;
+}): string {
+  const hi = firstName(m.clientName) ? `Hi ${firstName(m.clientName)}, ` : 'Hi, ';
+  const options = m.hasOptions ? ', with options you can choose from' : '';
+  return (
+    `${hi}here's your quote from ${m.businessName.trim()} for your ${m.title.trim()}: ` +
+    `${formatMoney(m.baseCents)} + HST${options}. See it and accept here: ${m.link}`
+  );
+}

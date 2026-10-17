@@ -2,17 +2,26 @@ import { useState, type FormEvent } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { supabase, approvalLink } from '../lib/supabase';
 import { errorMessage, formatWhen } from '../lib/format';
-import { formatMoney, jobTotals, taxLabel } from '../lib/money';
+import { formatMoney, jobTotals, paymentTotals, taxLabel } from '../lib/money';
 import { changeMessage, firstName, scheduleClause } from '../lib/sms';
 import { useJob, type JobData } from '../lib/useJob';
 import { ErrorNote, Loading, Page } from '../components/Layout';
 import { SendActions } from '../components/SendActions';
+import { PaymentsTab } from '../components/PaymentsTab';
 import type { Change, JobEvent } from '../lib/types';
+
+type Tab = 'thread' | 'payments' | 'total';
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'thread', label: 'Thread' },
+  { id: 'payments', label: 'Payments' },
+  { id: 'total', label: 'Total' },
+];
 
 export function JobThread() {
   const { jobId } = useParams();
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') === 'total' ? 'total' : 'thread';
+  const tab: Tab = TABS.find((t) => t.id === params.get('tab'))?.id ?? 'thread';
+  const showTab = (id: Tab) => setParams(id === 'thread' ? {} : { tab: id }, { replace: true });
   const { data, error, notFound, reload } = useJob(jobId);
 
   if (notFound) {
@@ -41,7 +50,12 @@ export function JobThread() {
         Back to jobs
       </Link>
       <div className="job-head">
-        <h1>{job.title}</h1>
+        <div className="title-row">
+          <h1>{job.title}</h1>
+          <Link to={`/jobs/${job.id}/edit`} className="edit-link">
+            Edit
+          </Link>
+        </div>
         <p className="muted">
           {client.name}
           {job.address ? ` · ${job.address}` : ''}
@@ -51,31 +65,33 @@ export function JobThread() {
 
       <JobSummary data={data} />
 
-      <Link to={`/jobs/${job.id}/changes/new`} className="btn primary">
-        New change
-      </Link>
+      <div className="action-grid">
+        <Link to={`/jobs/${job.id}/changes/new`} className="btn primary">
+          New change
+        </Link>
+        <Link to={`/jobs/${job.id}/log/new`} className="btn secondary">
+          Daily log
+        </Link>
+      </div>
 
       <div className="tabs" role="tablist">
-        <button
-          role="tab"
-          aria-selected={tab === 'thread'}
-          className={tab === 'thread' ? 'tab active' : 'tab'}
-          onClick={() => setParams({}, { replace: true })}
-        >
-          Thread
-        </button>
-        <button
-          role="tab"
-          aria-selected={tab === 'total'}
-          className={tab === 'total' ? 'tab active' : 'tab'}
-          onClick={() => setParams({ tab: 'total' }, { replace: true })}
-        >
-          Job total
-        </button>
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={tab === t.id}
+            className={tab === t.id ? 'tab active' : 'tab'}
+            onClick={() => showTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       <ErrorNote message={error} />
-      {tab === 'thread' ? <Thread data={data} reload={reload} /> : <Totals data={data} />}
+      {tab === 'thread' && <Thread data={data} reload={reload} />}
+      {tab === 'payments' && <PaymentsTab data={data} reload={reload} />}
+      {tab === 'total' && <Totals data={data} />}
       <JobStatusToggle data={data} reload={reload} />
     </Page>
   );
@@ -117,7 +133,7 @@ function Thread({ data, reload }: { data: JobData; reload: () => Promise<void> }
       </form>
 
       {data.events.length === 0 && (
-        <p className="muted center pad">Nothing here yet. Notes and changes will show up here.</p>
+        <p className="muted center pad">Nothing here yet. Notes, daily logs, changes and payments show up here.</p>
       )}
       <ol className="thread">
         {data.events.map((ev) => (
@@ -141,6 +157,30 @@ function ThreadItem({
   data: JobData;
   reload: () => Promise<void>;
 }) {
+  if (event.kind === 'daily_log') {
+    return <DailyLogItem event={event} data={data} />;
+  }
+
+  if (event.kind === 'payment_received' || event.kind === 'quote_accepted') {
+    return (
+      <article className="card item approved">
+        <p className="item-meta">
+          {event.kind === 'quote_accepted' ? 'Quote accepted' : 'Paid'} · {formatWhen(event.created_at)}
+        </p>
+        <p className="item-title">{event.body.replace(/^Payment received: /, '')}</p>
+      </article>
+    );
+  }
+
+  if (event.kind === 'payment_requested') {
+    return (
+      <article className="card item request">
+        <p className="item-meta">Payment requested · {formatWhen(event.created_at)}</p>
+        <p className="item-body">{event.body.replace(/^Payment requested: /, '')}</p>
+      </article>
+    );
+  }
+
   if (event.kind === 'note' || !change) {
     return (
       <article className="card item note">
@@ -173,6 +213,32 @@ function ThreadItem({
   }
 
   return <SentChange change={change} event={event} data={data} reload={reload} />;
+}
+
+function DailyLogItem({ event, data }: { event: JobEvent; data: JobData }) {
+  const photos = data.photos.filter((p) => p.event_id === event.id);
+  return (
+    <article className="card item log">
+      <p className="item-meta">Daily log · {formatWhen(event.created_at)}</p>
+      <p className="item-body">{event.body}</p>
+      {photos.length > 0 && (
+        <div className="photo-grid">
+          {photos.map((p) => {
+            const url = data.photoUrls[p.storage_path];
+            return url ? (
+              <a key={p.id} href={url} target="_blank" rel="noreferrer" className="photo">
+                <img src={url} alt="" loading="lazy" width={p.width ?? undefined} height={p.height ?? undefined} />
+              </a>
+            ) : (
+              <span key={p.id} className="photo missing">
+                Photo
+              </span>
+            );
+          })}
+        </div>
+      )}
+    </article>
+  );
 }
 
 function SentChange({
@@ -240,6 +306,8 @@ function JobSummary({ data }: { data: JobData }) {
   const totals = jobTotals(job.contract_cents, job.tax_rate, changes);
   const approvedCount = changes.filter((c) => c.status === 'approved').length;
   const waiting = changes.filter((c) => c.status === 'sent');
+  const pay = paymentTotals(totals.subtotalCents, data.milestones);
+  const hasPayments = data.milestones.length > 0;
 
   return (
     <div className="card summary">
@@ -257,13 +325,29 @@ function JobSummary({ data }: { data: JobData }) {
           {totals.approvedCents < 0 ? '−' : '+'} {formatMoney(Math.abs(totals.approvedCents))}
         </span>
       </div>
+      {hasPayments && (
+        <div className="summary-line">
+          <span>Paid to date</span>
+          <span className="leader" aria-hidden="true" />
+          <span className="money">− {formatMoney(pay.paidCents)}</span>
+        </div>
+      )}
       <div className="summary-total">
-        <span>Job total</span>
-        <span className="money">{formatMoney(totals.subtotalCents)}</span>
+        <span>{hasPayments ? 'Left to pay' : 'Job total'}</span>
+        <span className="money">{formatMoney(hasPayments ? pay.leftCents : totals.subtotalCents)}</span>
       </div>
       <p className="muted small">
-        Before HST. With HST: {formatMoney(totals.totalCents, { alwaysCents: true })}
+        {hasPayments
+          ? `All amounts before HST. Job total ${formatMoney(totals.subtotalCents)}.`
+          : `Before HST. With HST: ${formatMoney(totals.totalCents, { alwaysCents: true })}`}
       </p>
+      {hasPayments && (
+        <div className="progress" aria-hidden="true">
+          {data.milestones.map((m) => (
+            <span key={m.id} className={`seg ${m.status}`} />
+          ))}
+        </div>
+      )}
       {waiting.length > 0 && (
         <p className="summary-waiting">
           {waiting.length === 1 ? '1 change' : `${waiting.length} changes`} waiting on{' '}

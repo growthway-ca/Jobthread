@@ -32,5 +32,6 @@ for f in "$ROOT"/supabase/migrations/*.sql; do
   "${PSQL[@]}" -f "$f"
 done
 "${PSQL[@]}" -f "$ROOT/supabase/tests/security_test.sql"
+"${PSQL[@]}" -f "$ROOT/supabase/tests/features_test.sql"
 "${PSQL[@]}" -v email=a@example.com -f "$ROOT/supabase/dev-seed.sql" >/dev/null
 echo "Dev seed applies cleanly."

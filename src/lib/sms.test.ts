@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { changeMessage, smsHref, smsNumber } from './sms';
+import { changeMessage, dailyLogMessage, paymentRequestMessage, quoteMessage, smsHref, smsNumber } from './sms';
 
 function setUserAgent(ua: string, maxTouchPoints = 0) {
   vi.stubGlobal('navigator', { userAgent: ua, maxTouchPoints });
@@ -74,5 +74,43 @@ describe('smsHref', () => {
   it('keeps a leading + only', () => {
     expect(smsNumber('+1 (705) 555-0199')).toBe('+17055550199');
     expect(smsNumber('705.555.0199')).toBe('7055550199');
+  });
+});
+
+describe('other messages', () => {
+  it('writes a payment request with HST and e-Transfer details', () => {
+    expect(
+      paymentRequestMessage({
+        clientName: 'Matt P.',
+        jobTitle: 'basement',
+        title: 'Rough-in complete',
+        amountCents: 1119333,
+        taxRate: 0.13,
+        etransferEmail: 'pay@keel.ca',
+      }),
+    ).toBe(
+      'Hi Matt, a payment is due for your basement: Rough-in complete. $11,193.33 + HST = $12,648.46. You can e-Transfer it to pay@keel.ca. Thank you!',
+    );
+  });
+
+  it('writes a quote text', () => {
+    expect(
+      quoteMessage({
+        clientName: 'Jordan R.',
+        businessName: 'Keel Contracting',
+        title: 'basement finish',
+        baseCents: 7219000,
+        hasOptions: true,
+        link: 'L',
+      }),
+    ).toBe(
+      "Hi Jordan, here's your quote from Keel Contracting for your basement finish: $72,190 + HST, with options you can choose from. See it and accept here: L",
+    );
+  });
+
+  it('writes a daily log text', () => {
+    expect(
+      dailyLogMessage({ clientName: 'Matt', jobTitle: 'basement', body: 'Rough-in done.', when: new Date(2026, 9, 15) }),
+    ).toBe('Hi Matt, update on your basement, Oct 15: Rough-in done.');
   });
 });

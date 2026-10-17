@@ -20,6 +20,23 @@ v1 is a pilot: one contractor, one real job. See the build brief for scope.
    subtotal, HST and the new total. Sent-but-unapproved changes are listed
    separately and not counted.
 
+### Beyond the v1 pilot
+
+- **Daily log:** a note for the day with up to 8 photos. Photos are shrunk on
+  the phone, stored in a private Supabase bucket (one folder per job), and the
+  update can be texted to the client.
+- **Payments:** a payment schedule per job. **Request** writes the text
+  (amount, HST, and your e-Transfer email from Settings), and **Mark paid**
+  records how it was paid. Requested amounts are locked and paid is final.
+  The 10% holdback is tracked per job. The **Money** tab shows what's owed,
+  what's next and what came in across every job. JobThread records payments;
+  it doesn't process them.
+- **Quotes:** a scope list, base price, optional add-ons and a deposit. The
+  client opens `/p/<token>`, ticks options and accepts with their name. That
+  creates the job at base price plus the options they picked, and adds the
+  booking deposit to its payment schedule. Sent quotes are locked; changes go
+  through **Make a revision**, which withdraws the old link.
+
 ## Stack
 
 - Vite + React + TypeScript, React Router, plain CSS (`src/styles.css`)
@@ -99,8 +116,9 @@ npm run test:db   # schema, RLS and immutability tests against a throwaway Postg
 `test:db` needs Postgres 15+ binaries (`initdb`, `pg_ctl`, `psql`) and must
 run as a non-root user. In a root-only container, use
 `scripts/test-db-as-root.sh`. It applies a small stand-in for Supabase's
-`auth` schema (`supabase/tests/auth_stub.sql`), then the migrations, then
-checks that:
+`auth` and `storage` schemas (`supabase/tests/auth_stub.sql`), then the
+migrations, then runs `security_test.sql` and `features_test.sql`, which check
+that:
 
 - a second contractor can't see or change the first contractor's clients,
   jobs, changes or log
@@ -109,7 +127,13 @@ checks that:
 - sent changes are locked; approved changes can't be edited, voided or
   re-approved by anyone, including through the API
 - only `approve_change()` can approve, using server time; the job log is
-  append-only and contractors can only add notes to it
+  append-only and contractors can only add notes and daily logs to it
+- photos can only be uploaded into, and read from, your own jobs' folders
+- payment requests lock their amount, paid is final, and payment events
+  can't be forged
+- sent quotes and their options are locked; only `accept_quote()` can accept,
+  and it creates the job and deposit; withdrawn and expired quotes can't be
+  accepted
 
 ## Security model
 
