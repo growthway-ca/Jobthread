@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en-CA">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>JobThread · Every change on the job, approved in writing</title>
+    <meta
+      name="description"
+      content="JobThread is the job log for small residential contractors. Send a change from your phone, your client approves it with one tap, and the job total updates."
+    />
+    <meta name="theme-color" content="#1B1F1D" />
+    <meta property="og:title" content="JobThread" />
+    <meta property="og:description" content="Every change on the job, priced and approved in writing. Built for small residential contractors." />
+    <meta property="og:image" content="https://jobthread.ca/og.png" />
+    <meta property="og:url" content="https://jobthread.ca" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap header-row">
+        <a href="/" class="brand" aria-label="JobThread home">
+          <svg viewBox="22 8 56 87" width="21" height="32" aria-hidden="true">
+            <path d="M 33 12 H 67 Q 73 12 73 18 V 30 Q 73 36 67 36 H 45 L 36 43 L 37 36 H 33 Q 27 36 27 30 V 18 Q 27 12 33 12 Z" fill="#fff" />
+            <path d="M 54 45 V 71 Q 54 87 38 87 H 34" fill="none" stroke="#fff" stroke-width="14" />
+            <circle cx="34" cy="87" r="7" fill="#fff" />
+          </svg>
+          <span>JobThread</span>
+        </a>
+        <nav class="header-nav" aria-label="Main">
+          <a href="#how">How it works</a>
+          <a href="https://app.jobthread.ca" class="sign-in">Sign in</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">For small residential contractors</p>
+            <h1>Every change on the job, priced and approved in writing.</h1>
+            <p class="lede">
+              Your client asks for one more thing. You send the change from your phone with the price and the time it
+              adds. They tap Approve. The job total updates, and nothing turns into an argument at the final invoice.
+            </p>
+            <div class="hero-actions">
+              <a href="#early-access" class="btn primary">Get early access</a>
+              <a href="#how" class="btn ghost">See how it works</a>
+            </div>
+            <p class="small muted">Free while we’re in early access. Works on any phone, no app store.</p>
+          </div>
+
+          <div class="hero-demo" aria-label="Example: a change sent by text and approved by the client">
+            <div class="phone">
+              <p class="phone-meta">Text from Sam · 4:31 pm</p>
+              <div class="bubble out">
+                Hi Matt, change #8 for your basement: move the stair light switch to the top. $185 + HST, no change to
+                the schedule. Approve here: <span class="link">app.jobthread.ca/a/…</span>
+              </div>
+              <div class="approval">
+                <p class="small muted">From Keel Contracting</p>
+                <p class="approval-title">Change #8 for your basement</p>
+                <div class="approval-line"><span>Price</span><span>$185.00</span></div>
+                <div class="approval-line"><span>HST (13%)</span><span>$24.05</span></div>
+                <div class="approval-line total"><span>Total</span><span>$209.05</span></div>
+                <div class="approved-stamp">Approved by Matt P. · Oct 15, 4:33 pm</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="how" class="how">
+        <div class="wrap">
+          <h2>How a change gets approved</h2>
+          <ol class="steps">
+            <li>
+              <span class="step-num">1</span>
+              <div>
+                <h3>Write it up on site</h3>
+                <p>What’s changing, the price before tax, and the time it adds. You see the exact text before it goes.</p>
+              </div>
+            </li>
+            <li>
+              <span class="step-num">2</span>
+              <div>
+                <h3>Send it from your own number</h3>
+                <p>Your phone’s Messages app opens with the text ready. Clients see your name, not a strange number.</p>
+              </div>
+            </li>
+            <li>
+              <span class="step-num">3</span>
+              <div>
+                <h3>They tap Approve</h3>
+                <p>
+                  No app and no login. They type their name to confirm, and JobThread records who approved what, the
+                  price and the time.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span class="step-num">4</span>
+              <div>
+                <h3>The total takes care of itself</h3>
+                <p>Approved changes add to the job total with HST. Anything still waiting is listed, not counted.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="features">
+        <div class="wrap">
+          <h2>The whole job, start to finish</h2>
+          <p class="section-lede">Changes are where it starts. Quotes, payments, schedules and your trades live in the same place.</p>
+
+          <div class="feature">
+            <div class="feature-copy">
+              <h3>Quotes clients can say yes to</h3>
+              <p>
+                Send a proposal with Good, Better and Best options and add-ons they tick themselves. You see when they
+                open it. When they accept, the job and the booking deposit are set up for you.
+              </p>
+            </div>
+            <div class="mini card">
+              <div class="pkg"><span>Good</span><strong>$68,900</strong></div>
+              <div class="pkg on"><span>Better</span><strong>$72,190</strong></div>
+              <div class="pkg"><span>Best</span><strong>$86,000</strong></div>
+              <p class="small hot">Opened 3 times last night</p>
+            </div>
+          </div>
+
+          <div class="feature">
+            <div class="feature-copy">
+              <h3>Get paid on schedule</h3>
+              <p>
+                Set the payment schedule once. When a stage is done, Request writes the text with HST and your
+                e-Transfer email. Holdbacks are tracked, so the last 10% doesn’t slip.
+              </p>
+            </div>
+            <div class="mini card">
+              <div class="pay paid"><span>Subfloor and framing</span><span>Paid</span></div>
+              <div class="pay due"><span>Rough-ins and inspections</span><span>Due now</span></div>
+              <div class="pay"><span>Drywall</span><span>Upcoming</span></div>
+              <div class="left"><span>Left to pay</span><strong>$56,633</strong></div>
+            </div>
+          </div>
+
+          <div class="feature">
+            <div class="feature-copy">
+              <h3>One page your client keeps</h3>
+              <p>
+                Send one link for the whole job: what’s left to pay, what’s happening on which dates, approved changes
+                and your daily updates. Fewer “just checking in” texts.
+              </p>
+            </div>
+            <div class="mini card">
+              <p class="small muted">What’s happening when</p>
+              <div class="sched"><span class="chip now">Now</span><span>Electrical rough-in</span></div>
+              <div class="sched"><span class="chip">Tue, Oct 20</span><span>ESA and plumbing inspections</span></div>
+              <div class="sched"><span class="chip">Thu, Oct 22</span><span>Drywall delivery</span></div>
+            </div>
+          </div>
+
+          <div class="feature">
+            <div class="feature-copy">
+              <h3>Job sheets for your trades</h3>
+              <p>
+                Each sub gets a link with the address, parking, the pets and quiet hours, and where the washroom is. The
+                lockbox code shows only after they type their name, and every view is logged.
+              </p>
+            </div>
+            <div class="mini card dark">
+              <p class="small">Getting in</p>
+              <p>Lockbox on the side door. No alarm.</p>
+              <p class="code">••••</p>
+              <p class="small">Code viewed by Dave Sparks, 7:52 am</p>
+            </div>
+          </div>
+
+          <div class="feature">
+            <div class="feature-copy">
+              <h3>Finish strong, get the next one</h3>
+              <p>
+                When a job wraps, JobThread lines up the Google review request, a referral link your client can pass on,
+                and six- and twelve-month check-ins. Referrals land on your Today screen as new leads.
+              </p>
+            </div>
+            <div class="mini card">
+              <p class="small muted">New lead</p>
+              <p><strong>Dana M. · deck repair</strong></p>
+              <p class="small accent">Came from J. Tran’s link</p>
+            </div>
+          </div>
+
+          <ul class="also">
+            <li>Daily logs with photos</li>
+            <li>WSIB and insurance reminders for subs</li>
+            <li>Before-and-after posts, with the client’s OK</li>
+            <li>HST and holdbacks built in</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="clients">
+        <div class="wrap clients-grid">
+          <div>
+            <h2>Nothing for your clients to download</h2>
+            <p>
+              Clients get a text from you with a link. It opens in their browser, shows the change or quote in plain
+              numbers with tax, and asks them to type their name to approve. That’s it.
+            </p>
+          </div>
+          <div>
+            <h2>Records that don’t change after the fact</h2>
+            <p>
+              Once a change is sent, its price and description are locked. To fix a mistake you void it and send a new
+              one, and both stay in the job’s history. Approvals keep the name, time and price.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="early-access" class="signup">
+        <div class="wrap signup-grid">
+          <div>
+            <h2>Get early access</h2>
+            <p>
+              We’re rolling JobThread out to a small group of residential contractors. Tell us a bit about your work and
+              we’ll get you set up, free while we’re in early access.
+            </p>
+            <p class="small muted">Already have an account? <a href="https://app.jobthread.ca">Sign in</a>.</p>
+          </div>
+          <form name="early-access" method="POST" action="/thanks.html" data-netlify="true" netlify-honeypot="company-website" class="card form">
+            <input type="hidden" name="form-name" value="early-access" />
+            <p class="hidden-field">
+              <label>Leave this empty <input name="company-website" tabindex="-1" autocomplete="off" /></label>
+            </p>
+            <label class="field">
+              <span>Your name</span>
+              <input name="name" autocomplete="name" required maxlength="120" />
+            </label>
+            <label class="field">
+              <span>Business name</span>
+              <input name="business" autocomplete="organization" required maxlength="120" />
+            </label>
+            <label class="field">
+              <span>Email</span>
+              <input name="email" type="email" autocomplete="email" required maxlength="200" />
+            </label>
+            <label class="field">
+              <span>Mobile (optional)</span>
+              <input name="phone" type="tel" autocomplete="tel" maxlength="30" />
+            </label>
+            <label class="field">
+              <span>What kind of work do you do?</span>
+              <select name="work">
+                <option>Renovations, general</option>
+                <option>Basements</option>
+                <option>Kitchens and baths</option>
+                <option>Decks and exteriors</option>
+                <option>A trade (electrical, plumbing, HVAC…)</option>
+                <option>Something else</option>
+              </select>
+            </label>
+            <button type="submit" class="btn primary">Request access</button>
+            <p class="small muted">We’ll only use this to get in touch about JobThread.</p>
+          </form>
+        </div>
+      </section>
+
+      <section class="faq">
+        <div class="wrap">
+          <h2>Questions</h2>
+          <details>
+            <summary>Do my clients need an app or an account?</summary>
+            <p>No. They tap the link in your text and it opens in their phone’s browser.</p>
+          </details>
+          <details>
+            <summary>Does it text from my number?</summary>
+            <p>Yes. JobThread writes the text and opens your Messages app; you send it yourself, so it comes from you.</p>
+          </details>
+          <details>
+            <summary>What does an approval record?</summary>
+            <p>
+              The change number, description, price, the name the client typed, and the date and time. It can’t be edited
+              afterwards. Talk to your lawyer about how you use approvals in your contracts.
+            </p>
+          </details>
+          <details>
+            <summary>Does it handle HST and holdbacks?</summary>
+            <p>Yes. Prices go in before tax, HST is shown on everything the client sees, and a 10% holdback can be tracked per job.</p>
+          </details>
+          <details>
+            <summary>Does it take payments?</summary>
+            <p>Not yet. It sends payment requests with your e-Transfer details and keeps track of what’s been paid.</p>
+          </details>
+          <details>
+            <summary>What does it cost?</summary>
+            <p>It’s free during early access. We’ll give plenty of notice before that changes.</p>
+          </details>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-row">
+        <span>© <span id="year">2026</span> JobThread</span>
+        <a href="mailto:hello@jobthread.ca">hello@jobthread.ca</a>
+        <a href="https://app.jobthread.ca">Sign in</a>
+      </div>
+    </footer>
+    <script>
+      document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>
