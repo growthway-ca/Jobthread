@@ -7,7 +7,7 @@ import { sheetMessage } from '../lib/sms';
 import { useJob, type JobData } from '../lib/useJob';
 import { ErrorNote, Loading, Page } from '../components/Layout';
 import { SendActions } from '../components/SendActions';
-import type { JobSheet, JobSheetView, JobSite } from '../lib/types';
+import type { JobSheet, JobSheetView, JobSite, Subcontractor } from '../lib/types';
 
 type SheetRow = JobSheet & { job_sheet_views: JobSheetView[] };
 
@@ -211,6 +211,15 @@ function NewSheet({ data, onDone }: { data: JobData; onDone: () => Promise<void>
   const [title, setTitle] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [subs, setSubs] = useState<Subcontractor[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from('subcontractors')
+      .select('*')
+      .order('name')
+      .then(({ data }) => setSubs((data ?? []) as Subcontractor[]));
+  }, []);
 
   async function save(e: FormEvent) {
     e.preventDefault();
@@ -231,6 +240,29 @@ function NewSheet({ data, onDone }: { data: JobData; onDone: () => Promise<void>
   return (
     <form onSubmit={save} className="card pad-card stack">
       <h2>New sheet</h2>
+      {subs.length > 0 && (
+        <label className="field">
+          <span>From your subs</span>
+          <select
+            defaultValue=""
+            onChange={(e) => {
+              const s = subs.find((x) => x.id === e.target.value);
+              if (s) {
+                setTradeName(s.name);
+                setTradePhone(s.phone ?? '');
+              }
+            }}
+          >
+            <option value="">Pick a sub, or type below</option>
+            {subs.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+                {s.trade ? ` · ${s.trade}` : ''}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <label className="field">
         <span>Trade or company</span>
         <input required maxLength={120} placeholder="Sparks Electric" value={tradeName} onChange={(e) => setTradeName(e.target.value)} />

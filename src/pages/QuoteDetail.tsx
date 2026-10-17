@@ -39,7 +39,8 @@ export function QuoteDetail() {
       .maybeSingle();
     if (error || !data) return setError(error ? errorMessage(error) : 'We couldn’t find that quote.');
     const q = data as QuoteFull;
-    q.quote_options.sort((a, b) => a.position - b.position);
+    // Packages first, then add-ons.
+    q.quote_options.sort((a, b) => (a.kind === b.kind ? a.position - b.position : a.kind === 'package' ? -1 : 1));
     setQuote(q);
   }, [quoteId]);
 
@@ -126,6 +127,7 @@ export function QuoteDetail() {
             detail: o.detail,
             price_cents: o.price_cents,
             recommended: o.recommended,
+            kind: o.kind,
           })),
         );
         if (optError) throw optError;
@@ -188,12 +190,15 @@ export function QuoteDetail() {
             <span>
               {o.title}
               <span className="muted small block">
+                {o.kind === 'package' ? 'Package · ' : ''}
                 {q.status === 'accepted'
                   ? o.selected
                     ? 'Picked'
                     : 'Not picked'
                   : o.recommended
-                    ? 'Ticked to start'
+                    ? o.kind === 'package'
+                      ? 'Picked to start'
+                      : 'Ticked to start'
                     : 'Optional'}
                 {o.detail ? ` · ${o.detail}` : ''}
               </span>

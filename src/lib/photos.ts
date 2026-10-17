@@ -60,3 +60,22 @@ export async function signedPhotoUrls(paths: string[]): Promise<Record<string, s
   }
   return urls;
 }
+
+export const CHANGE_PHOTO_BUCKET = 'change-photos';
+
+/**
+ * Uploads a change's "photo of the spot". This bucket is public under
+ * unguessable names so the client's approval page can show it.
+ */
+export async function uploadChangePhoto(jobId: string, photo: PreparedPhoto): Promise<string> {
+  const path = `${jobId}/${crypto.randomUUID()}.jpg`;
+  const { error } = await supabase.storage
+    .from(CHANGE_PHOTO_BUCKET)
+    .upload(path, photo.blob, { contentType: 'image/jpeg', upsert: false });
+  if (error) throw error;
+  return path;
+}
+
+export function changePhotoUrl(path: string): string {
+  return supabase.storage.from(CHANGE_PHOTO_BUCKET).getPublicUrl(path).data.publicUrl;
+}

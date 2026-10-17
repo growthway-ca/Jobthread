@@ -9,7 +9,8 @@ import { ErrorNote, Loading, Page } from '../components/Layout';
 import { SendActions } from '../components/SendActions';
 import { PaymentsTab } from '../components/PaymentsTab';
 import { ScheduleTab } from '../components/ScheduleTab';
-import type { Change, JobEvent } from '../lib/types';
+import { REASON_LABELS, type Change, type JobEvent } from '../lib/types';
+import { changePhotoUrl } from '../lib/photos';
 
 type Tab = 'thread' | 'schedule' | 'payments' | 'total';
 const TABS: { id: Tab; label: string }[] = [
@@ -290,6 +291,18 @@ function SentChange({
         Change #{change.number} sent · {formatWhen(event.created_at)}
       </p>
       <p className="item-body">{change.description}</p>
+      {(change.reason || change.trade) && (
+        <p className="muted small">
+          {change.reason ? REASON_LABELS[change.reason] : ''}
+          {change.reason && change.trade ? ' · ' : ''}
+          {change.trade}
+        </p>
+      )}
+      {change.photo_path && (
+        <a href={changePhotoUrl(change.photo_path)} target="_blank" rel="noreferrer" className="photo single">
+          <img src={changePhotoUrl(change.photo_path)} alt="" loading="lazy" />
+        </a>
+      )}
       <p className="item-price">
         {formatMoney(change.price_cents)} + HST
         {scheduleClause(change.time_added) ? ` · ${scheduleClause(change.time_added)}` : ''}
@@ -440,6 +453,11 @@ function JobStatusToggle({ data, reload }: { data: JobData; reload: () => Promis
 
   return (
     <div className="footer-actions">
+      {done && (
+        <Link to={`/jobs/${data.job.id}/post`} className="btn secondary">
+          Before-and-after post
+        </Link>
+      )}
       <button type="button" className="btn plain" onClick={() => void toggle()}>
         {done ? 'Reopen job' : 'Mark job done'}
       </button>

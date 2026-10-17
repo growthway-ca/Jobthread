@@ -111,12 +111,24 @@ function QuoteView({ token, quote, onChange }: { token: string; quote: ClientQuo
   const depositRate = Number(quote.deposit_rate ?? 0);
   const scopeLines = (quote.scope ?? '').split('\n').map((l) => l.trim()).filter(Boolean);
 
+  const packages = options.filter((o) => o.kind === 'package');
+  const addons = options.filter((o) => o.kind !== 'package');
+
   function toggle(id: string) {
     if (!open) return;
     setPicked((current) => {
       const next = new Set(current);
       if (next.has(id)) next.delete(id);
       else next.add(id);
+      return next;
+    });
+  }
+
+  function pickPackage(id: string) {
+    if (!open) return;
+    setPicked((current) => {
+      const next = new Set([...current].filter((x) => !packages.some((p) => p.id === x)));
+      next.add(id);
       return next;
     });
   }
@@ -136,6 +148,7 @@ function QuoteView({ token, quote, onChange }: { token: string; quote: ClientQuo
       if (error.message === 'expired') return setError('This quote has expired. Ask for an updated one.');
       if (error.message === 'not_open') return setError('This quote is no longer open.');
       if (error.message === 'name_required') return setError('Type your full name to confirm.');
+      if (error.message === 'pick_package') return setError('Pick one of the packages first.');
       return setError('That didn’t go through. Check your connection and try again.');
     }
     if (data) {
@@ -159,6 +172,21 @@ function QuoteView({ token, quote, onChange }: { token: string; quote: ClientQuo
 
       <div className="proposal-head">
         <p className="from">{quote.business_name}</p>
+        {(quote.google_rating || quote.credentials) && (
+          <p className="trust-line">
+            {quote.google_rating ? (
+              <>
+                <span className="stars" aria-hidden="true">
+                  ★
+                </span>{' '}
+                {Number(quote.google_rating).toFixed(1)}
+                {quote.google_review_count ? ` from ${quote.google_review_count} Google reviews` : ' on Google'}
+              </>
+            ) : null}
+            {quote.google_rating && quote.credentials ? ' · ' : ''}
+            {quote.credentials}
+          </p>
+        )}
         <h1 className={accepted ? 'h2' : undefined}>{quote.title}</h1>
         <p className="muted">
           {quote.client_name ? `For ${quote.client_name}` : ''}
@@ -183,13 +211,36 @@ function QuoteView({ token, quote, onChange }: { token: string; quote: ClientQuo
         </ul>
       )}
 
+      {packages.length > 0 && (
+        <section className="stack">
+          <h2>{open ? `${packages.length === 3 ? 'Three' : packages.length === 2 ? 'Two' : packages.length} options for ${quote.client_name?.split(' ')[0] ?? 'you'}` : 'Package'}</h2>
+          <div className="package-list" role="radiogroup">
+            {packages.map((o) => {
+              const on = picked.has(o.id);
+              return (
+                <label key={o.id} className={`card package-card ${on ? 'on' : ''} ${open ? '' : 'locked'}`}>
+                  <input type="radio" name="package" checked={on} disabled={!open} onChange={() => pickPackage(o.id)} />
+                  <span className="package-top">
+                    <strong className="package-name">{o.title}</strong>
+                    <span className="package-price">{formatMoney(base + o.price_cents)}</span>
+                  </span>
+                  {o.detail && <span className="muted">{o.detail}</span>}
+                </label>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <div className="card option-list">
-        <div className="option-line base">
-          <strong>Base price</strong>
-          <span className="money">{formatMoney(base, { alwaysCents: true })}</span>
-        </div>
-        {options.length > 0 && <h2 className="option-heading">{open ? 'Pick your options' : 'Options'}</h2>}
-        {options.map((o) => {
+        {(packages.length === 0 || base > 0) && (
+          <div className="option-line base">
+            <strong>{packages.length ? 'Included in every package' : 'Base price'}</strong>
+            <span className="money">{formatMoney(base, { alwaysCents: true })}</span>
+          </div>
+        )}
+        {addons.length > 0 && <h2 className="option-heading">{open ? 'Pick your options' : 'Options'}</h2>}
+        {addons.map((o) => {
           const on = picked.has(o.id);
           return (
             <label key={o.id} className={`option-line ${on ? 'on' : ''} ${open ? '' : 'locked'}`}>

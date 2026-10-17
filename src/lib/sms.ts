@@ -199,3 +199,17 @@ export function sheetMessage(m: {
   const from = firstName(m.contractorName) ? ` – ${firstName(m.contractorName)}, ${m.businessName.trim()}` : '';
   return `${hi}here's the job sheet for ${what}${where}${when}: address, how to get in and what to know on site. ${m.link}${from}`;
 }
+
+export function subPaperworkMessage(m: { subName: string; items: string[]; businessName: string }): string {
+  const hi = firstName(m.subName) ? `Hi ${firstName(m.subName)}, ` : 'Hi, ';
+  const what = m.items.length === 2 ? `${m.items[0]} and ${m.items[1]}` : m.items[0];
+  return `${hi}could you send ${m.businessName.trim()} your updated ${what} when you get a chance? Ours on file is expiring. Thanks!`;
+}
+
+export function photoConsentMessage(m: { clientName: string; jobTitle: string; businessName: string }): string {
+  const hi = firstName(m.clientName) ? `Hi ${firstName(m.clientName)}, ` : 'Hi, ';
+  return (
+    `${hi}would you be OK with ${m.businessName.trim()} sharing a before-and-after photo of your ${m.jobTitle.trim()} online? ` +
+    `No address or names, just the space. Totally fine to say no.`
+  );
+}

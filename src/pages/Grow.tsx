@@ -130,6 +130,9 @@ export function Grow() {
                   Send referral link
                 </a>
               </div>
+              <Link to={`/jobs/${j.id}/post`} className="btn small plain">
+                Before-and-after post{j.photo_consent_at ? '' : ' (ask first)'}
+              </Link>
             </article>
           );
         })}
