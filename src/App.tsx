@@ -15,6 +15,8 @@ import { ShareJob } from './pages/ShareJob';
 import { Today } from './pages/Today';
 import { Grow } from './pages/Grow';
 import { Referral } from './pages/Referral';
+import { SiteInfo } from './pages/SiteInfo';
+import { JobSheetPage } from './pages/JobSheetPage';
 import { Settings } from './pages/Settings';
 import { EditJob } from './pages/EditJob';
 import { NewDailyLog } from './pages/NewDailyLog';
@@ -33,6 +35,7 @@ export function App() {
         <Route path="/p/:token" element={<Proposal />} />
         <Route path="/j/:token" element={<ClientProject />} />
         <Route path="/r/:token" element={<Referral />} />
+        <Route path="/s/:token" element={<JobSheetPage />} />
         <Route
           path="/*"
           element={
@@ -68,6 +71,7 @@ function ContractorApp() {
       <Route path="/jobs/:jobId/changes/new" element={<NewChange />} />
       <Route path="/jobs/:jobId/edit" element={<EditJob />} />
       <Route path="/jobs/:jobId/share" element={<ShareJob />} />
+      <Route path="/jobs/:jobId/site" element={<SiteInfo />} />
       <Route path="/jobs/:jobId/log/new" element={<NewDailyLog />} />
       <Route path="/quotes" element={<Quotes />} />
       <Route path="/quotes/new" element={<QuoteEdit />} />

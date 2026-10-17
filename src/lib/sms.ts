@@ -182,3 +182,20 @@ export function leadReplyMessage(m: { leadName: string; contractorName: string; 
   const about = m.project?.trim() ? ` about your ${midSentence(stripEndPunctuation(m.project)).slice(0, 80)}` : '';
   return `${hi}it's ${firstName(m.contractorName) || m.contractorName} from ${m.businessName.trim()}. Thanks for reaching out${about}. When's a good time to come by and take a look?`;
 }
+
+export function sheetMessage(m: {
+  tradeName: string;
+  title: string | null;
+  address: string | null;
+  when: string | null;
+  contractorName: string;
+  businessName: string;
+  link: string;
+}): string {
+  const hi = firstName(m.tradeName) ? `Hi ${firstName(m.tradeName)}, ` : 'Hi, ';
+  const what = m.title?.trim() ? `the ${midSentence(stripEndPunctuation(m.title))}` : 'the job';
+  const where = m.address?.trim() ? ` at ${m.address.trim()}` : '';
+  const when = m.when ? ` (${m.when})` : '';
+  const from = firstName(m.contractorName) ? ` – ${firstName(m.contractorName)}, ${m.businessName.trim()}` : '';
+  return `${hi}here's the job sheet for ${what}${where}${when}: address, how to get in and what to know on site. ${m.link}${from}`;
+}

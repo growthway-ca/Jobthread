@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { changeMessage, dailyLogMessage, paymentRequestMessage, projectMessage, quoteMessage, smsHref, smsNumber } from './sms';
+import { changeMessage, dailyLogMessage, paymentRequestMessage, projectMessage, quoteMessage, sheetMessage, smsHref, smsNumber } from './sms';
 
 function setUserAgent(ua: string, maxTouchPoints = 0) {
   vi.stubGlobal('navigator', { userAgent: ua, maxTouchPoints });
@@ -133,6 +133,24 @@ describe('project page messages', () => {
   it('writes the project page text', () => {
     expect(projectMessage({ clientName: 'Britt K', businessName: 'Growthway', jobTitle: 'basement', link: 'L' })).toBe(
       "Hi Britt, here's the page for your basement with Growthway. It shows what's left to pay, the payment schedule, changes and updates, and it stays up to date: L",
+    );
+  });
+});
+
+describe('job sheet message', () => {
+  it('writes the trade text with what, where and when', () => {
+    expect(
+      sheetMessage({
+        tradeName: 'Dave at Sparks Electric',
+        title: 'Electrical rough-in',
+        address: '5 Moreau Way',
+        when: 'Thu, Oct 15',
+        contractorName: 'Braeden Keel',
+        businessName: 'Keel Contracting',
+        link: 'L',
+      }),
+    ).toBe(
+      "Hi Dave, here's the job sheet for the electrical rough-in at 5 Moreau Way (Thu, Oct 15): address, how to get in and what to know on site. L – Braeden, Keel Contracting",
     );
   });
 });

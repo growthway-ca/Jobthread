@@ -73,11 +73,14 @@ export function JobThread() {
       <JobSummary data={data} />
 
       <div className="action-grid">
-        <Link to={`/jobs/${job.id}/changes/new`} className="btn primary">
+        <Link to={`/jobs/${job.id}/changes/new`} className="btn primary span-2">
           New change
         </Link>
         <Link to={`/jobs/${job.id}/log/new`} className="btn secondary">
           Daily log
+        </Link>
+        <Link to={`/jobs/${job.id}/site`} className="btn secondary">
+          Job sheets
         </Link>
       </div>
 

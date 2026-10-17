@@ -18,7 +18,8 @@ create table auth.users (
 create function auth.uid() returns uuid
 language sql stable
 as $$
-  select nullif(current_setting('request.jwt.claims', true)::json ->> 'sub', '')::uuid;
+  -- Same shape as Supabase's own auth.uid(): an empty setting means no user.
+  select nullif(nullif(current_setting('request.jwt.claims', true), '')::json ->> 'sub', '')::uuid;
 $$;
 
 -- Just enough of Supabase Storage for the photo policies.

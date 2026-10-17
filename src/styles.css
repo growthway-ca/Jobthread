@@ -1447,3 +1447,103 @@ select:focus {
   color: var(--muted);
   cursor: pointer;
 }
+
+/* ---------------------------------------------------------------- job sheets */
+
+.sheet-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+.sheet-card .item-meta-row {
+  width: 100%;
+}
+.sheet-card.closed {
+  opacity: 0.7;
+}
+.view-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.code-view {
+  color: var(--waiting);
+}
+.sheet-head h1 {
+  margin-bottom: 4px;
+}
+.sheet-head p {
+  margin: 0;
+}
+.label-sm {
+  margin: 0 0 2px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.sheet-address {
+  font-size: 19px;
+}
+.access-card {
+  gap: 10px;
+}
+.access-text {
+  margin: 0;
+  font-size: 17px;
+  color: #fff !important;
+}
+.code-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.code-dots {
+  font-size: 28px;
+  letter-spacing: 0.25em;
+}
+.code-shown {
+  font-size: 40px;
+  font-weight: 800;
+  font-stretch: 75%;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+.field.on-dark > span:first-child {
+  color: #fff;
+}
+.access-card .error {
+  color: #ffb4a8;
+}
+.heads-up {
+  border: 2px solid #c2610f;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.heads-up p {
+  margin: 0;
+  font-weight: 500;
+}
+.on-site {
+  margin: 0;
+  overflow: hidden;
+}
+.on-site div {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
+  padding: 14px 18px;
+}
+.on-site div + div {
+  border-top: 1px solid var(--page);
+}
+.on-site dt {
+  color: var(--muted);
+}
+.on-site dd {
+  margin: 0;
+}

@@ -246,3 +246,58 @@ export interface Lead {
   status: 'new' | 'contacted' | 'quoted' | 'closed';
   created_at: string;
 }
+
+export interface JobSite {
+  job_id: string;
+  parking: string | null;
+  access: string | null;
+  access_code: string | null;
+  heads_up: string | null;
+  washroom: string | null;
+  water: string | null;
+  power: string | null;
+  notes: string | null;
+  updated_at: string;
+}
+
+export interface JobSheet {
+  id: string;
+  job_id: string;
+  token: string;
+  trade_name: string;
+  trade_phone: string | null;
+  schedule_item_id: string | null;
+  title: string | null;
+  closed_at: string | null;
+  created_at: string;
+}
+
+export interface JobSheetView {
+  id: string;
+  sheet_id: string;
+  kind: 'opened' | 'code';
+  viewer_name: string | null;
+  viewed_at: string;
+}
+
+/** JSON returned by get_job_sheet: what a trade sees. */
+export interface PublicJobSheet {
+  closed: boolean;
+  business_name: string;
+  contractor_name?: string;
+  contractor_phone?: string;
+  trade_name?: string;
+  title?: string | null;
+  starts_on?: string | null;
+  ends_on?: string | null;
+  address?: string | null;
+  job_title?: string;
+  parking?: string | null;
+  access?: string | null;
+  has_code?: boolean;
+  heads_up?: string | null;
+  washroom?: string | null;
+  water?: string | null;
+  power?: string | null;
+  notes?: string | null;
+}

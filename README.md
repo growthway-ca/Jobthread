@@ -46,6 +46,11 @@ v1 is a pilot: one contractor, one real job. See the build brief for scope.
 - **Grow:** ask for Google reviews when a job is done, send clients a referral
   link (`/r/<token>`) whose leads land on Today, and 6- and 12-month check-ins.
 
+- **Job sheets:** site info per job (parking, getting in, heads up,
+  washroom, water, power) and a link for each trade (`/s/<token>`). The
+  lockbox code is only shown after the trade types their name, and every open
+  and code view is logged. Links close by hand or when the job is marked done.
+
 ## Stack
 
 - Vite + React + TypeScript, React Router, plain CSS (`src/styles.css`)
