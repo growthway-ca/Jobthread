@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabase, projectLink } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { errorMessage, formatWhen } from '../lib/format';
 import { formatMoney, holdbackCents, jobTotals, parseDollars, paymentTotals } from '../lib/money';
@@ -77,6 +77,7 @@ function MilestoneRow({ milestone: m, data, reload }: { milestone: Milestone; da
     amountCents: m.amount_cents,
     taxRate: data.job.tax_rate,
     etransferEmail: contractor?.etransfer_email ?? null,
+    projectLink: projectLink(data.job.share_token),
   });
 
   async function update(values: Partial<Milestone>, next: typeof mode = 'idle') {
