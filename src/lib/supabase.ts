@@ -26,3 +26,8 @@ export function publicBaseUrl(): string {
 export function approvalLink(token: string): string {
   return `${publicBaseUrl()}/a/${token}`;
 }
+
+/** The client's project page for a job. */
+export function projectLink(token: string): string {
+  return `${publicBaseUrl()}/j/${token}`;
+}

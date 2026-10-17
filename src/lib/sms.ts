@@ -109,13 +109,23 @@ export function paymentRequestMessage(m: {
   amountCents: number;
   taxRate: number;
   etransferEmail: string | null;
+  projectLink?: string;
 }): string {
   const hi = firstName(m.clientName) ? `Hi ${firstName(m.clientName)}, ` : 'Hi, ';
   const tax = Math.round(m.amountCents * Number(m.taxRate));
   const how = m.etransferEmail?.trim() ? ` You can e-Transfer it to ${m.etransferEmail.trim()}.` : '';
+  const page = m.projectLink ? ` Your payment schedule: ${m.projectLink}` : '';
   return (
     `${hi}a payment is due for your ${m.jobTitle.trim()}: ${stripEndPunctuation(m.title)}. ` +
-    `${formatMoney(m.amountCents)} + HST = ${formatMoney(m.amountCents + tax, { alwaysCents: true })}.${how} Thank you!`
+    `${formatMoney(m.amountCents)} + HST = ${formatMoney(m.amountCents + tax, { alwaysCents: true })}.${how} Thank you!${page}`
+  );
+}
+
+export function projectMessage(m: { clientName: string; businessName: string; jobTitle: string; link: string }): string {
+  const hi = firstName(m.clientName) ? `Hi ${firstName(m.clientName)}, ` : 'Hi, ';
+  return (
+    `${hi}here's the page for your ${m.jobTitle.trim()} with ${m.businessName.trim()}. ` +
+    `It shows what's left to pay, the payment schedule, changes and updates, and it stays up to date: ${m.link}`
   );
 }
 

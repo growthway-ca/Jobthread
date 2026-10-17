@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { changeMessage, dailyLogMessage, paymentRequestMessage, quoteMessage, smsHref, smsNumber } from './sms';
+import { changeMessage, dailyLogMessage, paymentRequestMessage, projectMessage, quoteMessage, smsHref, smsNumber } from './sms';
 
 function setUserAgent(ua: string, maxTouchPoints = 0) {
   vi.stubGlobal('navigator', { userAgent: ua, maxTouchPoints });
@@ -112,5 +112,27 @@ describe('other messages', () => {
     expect(
       dailyLogMessage({ clientName: 'Matt', jobTitle: 'basement', body: 'Rough-in done.', when: new Date(2026, 9, 15) }),
     ).toBe('Hi Matt, update on your basement, Oct 15: Rough-in done.');
+  });
+});
+
+describe('project page messages', () => {
+  it('adds the project link to payment requests when given', () => {
+    expect(
+      paymentRequestMessage({
+        clientName: 'Britt',
+        jobTitle: 'basement',
+        title: 'Drywall',
+        amountCents: 100000,
+        taxRate: 0.13,
+        etransferEmail: null,
+        projectLink: 'L',
+      }),
+    ).toBe('Hi Britt, a payment is due for your basement: Drywall. $1,000 + HST = $1,130.00. Thank you! Your payment schedule: L');
+  });
+
+  it('writes the project page text', () => {
+    expect(projectMessage({ clientName: 'Britt K', businessName: 'Growthway', jobTitle: 'basement', link: 'L' })).toBe(
+      "Hi Britt, here's the page for your basement with Growthway. It shows what's left to pay, the payment schedule, changes and updates, and it stays up to date: L",
+    );
   });
 });

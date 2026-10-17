@@ -52,9 +52,14 @@ export function JobThread() {
       <div className="job-head">
         <div className="title-row">
           <h1>{job.title}</h1>
-          <Link to={`/jobs/${job.id}/edit`} className="edit-link">
-            Edit
-          </Link>
+          <span className="head-links">
+            <Link to={`/jobs/${job.id}/share`} className="edit-link">
+              Client page
+            </Link>
+            <Link to={`/jobs/${job.id}/edit`} className="edit-link">
+              Edit
+            </Link>
+          </span>
         </div>
         <p className="muted">
           {client.name}

@@ -1182,3 +1182,104 @@ select:focus {
   margin: 4px 0 0;
   color: #cfd4d1;
 }
+
+/* ---------------------------------------------------------------- client project page */
+
+.head-links {
+  display: flex;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.dark-total .hero-number {
+  margin: 2px 0;
+}
+.waiting-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  color: inherit;
+  text-decoration: none;
+  border-color: var(--accent);
+}
+.waiting-card .btn {
+  margin-top: 8px;
+}
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.timeline-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 0 0 18px;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+.timeline-item:last-child::before {
+  display: none;
+}
+.timeline-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--muted);
+  background: var(--page);
+  flex-shrink: 0;
+  position: relative;
+}
+.timeline-item.paid .timeline-dot {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.timeline-item.paid .timeline-dot::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 10px;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(45deg);
+}
+.timeline-item.next .timeline-dot {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 5px var(--page);
+  background: var(--accent);
+}
+.timeline-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.timeline-amount {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  white-space: nowrap;
+}
+.change-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+}
+.change-num {
+  font-weight: 800;
+  font-stretch: 75%;
+  font-size: 18px;
+  color: var(--muted);
+  width: 26px;
+}

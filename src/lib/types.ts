@@ -37,6 +37,7 @@ export interface Job {
   holdback_rate: number;
   holdback_release_date: string | null;
   holdback_released_at: string | null;
+  share_token: string;
   created_at: string;
 }
 
@@ -178,3 +179,37 @@ export const PAID_METHOD_LABELS: Record<PaidMethod, string> = {
   card: 'Card',
   other: 'Other',
 };
+
+/** JSON returned by get_job_by_share_token: the client's project page. */
+export interface ClientProject {
+  business_name: string;
+  contractor_phone: string;
+  etransfer_email: string | null;
+  client_name: string;
+  title: string;
+  address: string | null;
+  status: 'active' | 'done';
+  contract_cents: number;
+  tax_rate: number;
+  holdback_rate: number;
+  changes: {
+    number: number;
+    description: string;
+    price_cents: number;
+    time_added: string | null;
+    status: 'sent' | 'approved';
+    sent_at: string | null;
+    approved_at: string | null;
+    approved_name: string | null;
+    approval_token: string | null;
+  }[];
+  payments: {
+    title: string;
+    amount_cents: number;
+    due_note: string | null;
+    status: MilestoneStatus;
+    requested_at: string | null;
+    paid_at: string | null;
+  }[];
+  updates: { body: string; created_at: string }[];
+}
