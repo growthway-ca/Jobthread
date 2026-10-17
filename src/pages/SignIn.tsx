@@ -16,7 +16,8 @@ export function SignIn() {
     setError(null);
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { shouldCreateUser: true, emailRedirectTo: window.location.origin },
+      // Trailing slash so Supabase's "https://host/**" redirect patterns match.
+      options: { shouldCreateUser: true, emailRedirectTo: `${window.location.origin}/` },
     });
     setBusy(false);
     if (error) return setError(errorMessage(error));
