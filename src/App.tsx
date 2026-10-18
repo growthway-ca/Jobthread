@@ -52,7 +52,7 @@ export function App() {
 }
 
 function ContractorApp() {
-  const { loading, session, contractor } = useAuth();
+  const { loading, session, contractor, profileError, refreshProfile } = useAuth();
   if (loading) {
     return (
       <>
@@ -62,6 +62,8 @@ function ContractorApp() {
     );
   }
   if (!session) return <SignIn />;
+  // Don't send someone to the first-time profile step just because loading failed.
+  if (profileError) return <LoadFailed onRetry={refreshProfile} />;
   if (!contractor) return <Profile />;
   return (
     <Routes>
@@ -98,6 +100,21 @@ function NotConfigured() {
           Set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> (see <code>.env.example</code>),
           then restart.
         </p>
+      </main>
+    </>
+  );
+}
+
+function LoadFailed({ onRetry }: { onRetry: () => Promise<void> }) {
+  return (
+    <>
+      <Header linkHome={false} />
+      <main className="page narrow stack">
+        <h1>Couldn’t load your account</h1>
+        <p className="muted">Check your signal and try again. Your jobs are safe.</p>
+        <button className="btn primary" onClick={() => void onRetry()}>
+          Try again
+        </button>
       </main>
     </>
   );

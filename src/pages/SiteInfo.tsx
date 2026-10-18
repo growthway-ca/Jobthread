@@ -204,6 +204,11 @@ function SheetCard({ sheet, data, reload }: { sheet: SheetRow; data: JobData; re
   );
 }
 
+/** A trade the contractor can pick instead of typing: a saved sub, or someone sent a sheet before. */
+type SavedTrade = { key: string; name: string; phone: string; trade: string | null; isSub: boolean };
+
+const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
 function NewSheet({ data, onDone }: { data: JobData; onDone: () => Promise<void> }) {
   const [tradeName, setTradeName] = useState('');
   const [tradePhone, setTradePhone] = useState('');
@@ -211,66 +216,126 @@ function NewSheet({ data, onDone }: { data: JobData; onDone: () => Promise<void>
   const [title, setTitle] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [subs, setSubs] = useState<Subcontractor[]>([]);
+  const [saved, setSaved] = useState<SavedTrade[] | null>(null);
+  const [picked, setPicked] = useState('');
+  const [saveAsSub, setSaveAsSub] = useState(true);
 
   useEffect(() => {
-    supabase
-      .from('subcontractors')
-      .select('*')
-      .order('name')
-      .then(({ data }) => setSubs((data ?? []) as Subcontractor[]));
+    void Promise.all([
+      supabase.from('subcontractors').select('*').order('name'),
+      supabase.from('job_sheets').select('trade_name, trade_phone').order('created_at', { ascending: false }).limit(200),
+    ]).then(([subsRes, sheetsRes]) => {
+      const list: SavedTrade[] = ((subsRes.data ?? []) as Subcontractor[]).map((s) => ({
+        key: `sub:${s.id}`,
+        name: s.name,
+        phone: s.phone ?? '',
+        trade: s.trade,
+        isSub: true,
+      }));
+      // Trades sent a sheet before but never added to Subs, newest first, one per name.
+      for (const sh of (sheetsRes.data ?? []) as Pick<JobSheet, 'trade_name' | 'trade_phone'>[]) {
+        if (list.some((t) => sameName(t.name, sh.trade_name))) continue;
+        list.push({ key: `past:${list.length}`, name: sh.trade_name, phone: sh.trade_phone ?? '', trade: null, isSub: false });
+      }
+      setSaved(list);
+    });
   }, []);
+
+  function pick(key: string) {
+    setPicked(key);
+    const t = saved?.find((x) => x.key === key);
+    setTradeName(t?.name ?? '');
+    setTradePhone(t?.phone ?? '');
+  }
+
+  const subs = saved?.filter((t) => t.isSub) ?? [];
+  const past = saved?.filter((t) => !t.isSub) ?? [];
+  const isKnownSub = subs.some((t) => sameName(t.name, tradeName));
+  // With saved trades, the name and number fields only open up for someone new (or a picked trade, to check the number).
+  const showFields = !saved?.length || picked !== '';
 
   async function save(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError(null);
+    const name = tradeName.trim();
+    const phone = tradePhone.trim() || null;
     const { error } = await supabase.from('job_sheets').insert({
       job_id: data.job.id,
-      trade_name: tradeName.trim(),
-      trade_phone: tradePhone.trim() || null,
+      trade_name: name,
+      trade_phone: phone,
       schedule_item_id: scheduleId || null,
       title: scheduleId ? null : title.trim() || null,
     });
+    if (error) {
+      setBusy(false);
+      return setError(errorMessage(error));
+    }
+    if (saveAsSub && !isKnownSub) {
+      // The sheet is already made; a failed save to Subs isn't worth stopping for.
+      await supabase.from('subcontractors').insert({ name, phone });
+    }
     setBusy(false);
-    if (error) return setError(errorMessage(error));
     await onDone();
   }
 
   return (
     <form onSubmit={save} className="card pad-card stack">
       <h2>New sheet</h2>
-      {subs.length > 0 && (
-        <label className="field">
-          <span>From your subs</span>
-          <select
-            defaultValue=""
-            onChange={(e) => {
-              const s = subs.find((x) => x.id === e.target.value);
-              if (s) {
-                setTradeName(s.name);
-                setTradePhone(s.phone ?? '');
-              }
-            }}
-          >
-            <option value="">Pick a sub, or type below</option>
-            {subs.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-                {s.trade ? ` · ${s.trade}` : ''}
-              </option>
-            ))}
-          </select>
-        </label>
+      {saved === null ? (
+        <Loading />
+      ) : (
+        <>
+          {saved.length > 0 && (
+            <label className="field">
+              <span>Who’s it for</span>
+              <select value={picked} onChange={(e) => pick(e.target.value)}>
+                <option value="" disabled>
+                  Pick a trade
+                </option>
+                {subs.length > 0 && (
+                  <optgroup label="Your subs">
+                    {subs.map((t) => (
+                      <option key={t.key} value={t.key}>
+                        {t.name}
+                        {t.trade ? ` · ${t.trade}` : ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                {past.length > 0 && (
+                  <optgroup label="Sent a sheet before">
+                    {past.map((t) => (
+                      <option key={t.key} value={t.key}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                <option value="new">Someone new…</option>
+              </select>
+            </label>
+          )}
+          {showFields && (
+            <>
+              <label className="field">
+                <span>Trade or company</span>
+                <input required maxLength={120} placeholder="Sparks Electric" value={tradeName} onChange={(e) => setTradeName(e.target.value)} />
+              </label>
+              <label className="field">
+                <span>Their mobile</span>
+                <input type="tel" inputMode="tel" maxLength={30} value={tradePhone} onChange={(e) => setTradePhone(e.target.value)} />
+              </label>
+              {tradeName.trim() && !isKnownSub && (
+                <label className="check-row">
+                  <input type="checkbox" checked={saveAsSub} onChange={(e) => setSaveAsSub(e.target.checked)} />
+                  <span>Save to my subs for next time</span>
+                </label>
+              )}
+            </>
+          )}
+        </>
       )}
-      <label className="field">
-        <span>Trade or company</span>
-        <input required maxLength={120} placeholder="Sparks Electric" value={tradeName} onChange={(e) => setTradeName(e.target.value)} />
-      </label>
-      <label className="field">
-        <span>Their mobile</span>
-        <input type="tel" inputMode="tel" maxLength={30} value={tradePhone} onChange={(e) => setTradePhone(e.target.value)} />
-      </label>
       {data.schedule.length > 0 && (
         <label className="field">
           <span>Which work</span>
@@ -291,7 +356,7 @@ function NewSheet({ data, onDone }: { data: JobData; onDone: () => Promise<void>
         </label>
       )}
       <ErrorNote message={error} />
-      <button className="btn primary" disabled={busy}>
+      <button className="btn primary" disabled={busy || !tradeName.trim()}>
         {busy ? 'Saving…' : 'Make the sheet'}
       </button>
       <button type="button" className="btn plain" onClick={() => void onDone()}>
