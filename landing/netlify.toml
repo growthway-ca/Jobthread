@@ -18,3 +18,19 @@
   to = "https://jobthread.ca/:splat"
   status = 301
   force = true
+
+# The old waitlist page; sign-up now happens in the app.
+[[redirects]]
+  from = "/thanks.html"
+  to = "/#start"
+  status = 301
+
+# Clean addresses for the legal pages.
+[[redirects]]
+  from = "/terms"
+  to = "/terms.html"
+  status = 200
+[[redirects]]
+  from = "/privacy"
+  to = "/privacy.html"
+  status = 200

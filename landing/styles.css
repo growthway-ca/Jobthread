@@ -488,6 +488,14 @@ summary:focus-visible {
 .form p {
   margin: 0;
 }
+.start-steps {
+  margin: 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 17px;
+}
 .field {
   display: flex;
   flex-direction: column;
@@ -620,4 +628,30 @@ summary:focus-visible {
   .hero-actions .btn {
     flex: 1 1 100%;
   }
+}
+
+/* ---------------------------------------------------------------- terms and privacy */
+
+.legal {
+  max-width: 720px;
+  padding-top: 56px;
+  padding-bottom: 80px;
+}
+.legal h1 {
+  margin-bottom: 4px;
+}
+.legal h2 {
+  font-size: 24px;
+  margin: 36px 0 8px;
+}
+.legal p,
+.legal li {
+  font-size: 17px;
+  line-height: 1.6;
+}
+.legal ul {
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
