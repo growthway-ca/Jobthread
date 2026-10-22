@@ -72,6 +72,16 @@ v1 is a pilot: one contractor, one real job. See the build brief for scope.
   phone filled in. It goes to `VITE_FEEDBACK_EMAIL`, or `hello@jobthread.ca`.
 - **Home screen tip:** Today suggests installing the app until it's installed
   or dismissed (one-tap Install on Android Chrome, steps on iPhone).
+- **New sign-up alert:** when a contractor finishes setup, an email goes to
+  you through Resend (database trigger plus `pg_net`). It needs two Vault
+  secrets, set once in the Supabase SQL editor:
+  ```sql
+  select vault.create_secret('re_your_resend_key', 'resend_api_key');
+  select vault.create_secret('you@example.com', 'signup_alert_to');
+  ```
+  Without them nothing is sent, and sign-up is never blocked.
+- **Landing page:** jobthread.ca sends everyone to sign up in the app (no
+  waitlist), with plain-language Terms and Privacy pages at /terms and /privacy.
 - **Safety net:** if a database update hasn't been run yet, the profile falls
   back to the columns every version has, and a crash on any screen shows a
   Reload button instead of a blank page.

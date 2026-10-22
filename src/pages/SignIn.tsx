@@ -132,6 +132,10 @@ export function SignIn() {
         </button>
       </form>
       <p className="auth-fine">No password. We’ll email you a link to sign in.</p>
+      <p className="auth-fine">
+        By continuing you agree to the <a href="https://jobthread.ca/terms">Terms</a> and{' '}
+        <a href="https://jobthread.ca/privacy">Privacy Policy</a>.
+      </p>
     </AuthShell>
   );
 }

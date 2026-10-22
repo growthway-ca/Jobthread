@@ -51,10 +51,10 @@
               adds. They tap Approve. The job total updates, and nothing turns into an argument at the final invoice.
             </p>
             <div class="hero-actions">
-              <a href="#early-access" class="btn primary">Get early access</a>
+              <a href="https://app.jobthread.ca" class="btn primary">Start free</a>
               <a href="#how" class="btn ghost">See how it works</a>
             </div>
-            <p class="small muted">Free while we’re in early access. Works on any phone, no app store.</p>
+            <p class="small muted">Free during the pilot. Works on any phone, no app store.</p>
           </div>
 
           <div class="hero-demo" aria-label="Example: a change sent by text and approved by the client">
@@ -228,51 +228,27 @@
         </div>
       </section>
 
-      <section id="early-access" class="signup">
+      <section id="start" class="signup">
         <div class="wrap signup-grid">
           <div>
-            <h2>Get early access</h2>
+            <h2>Start free</h2>
             <p>
-              We’re rolling JobThread out to a small group of residential contractors. Tell us a bit about your work and
-              we’ll get you set up, free while we’re in early access.
+              Set up takes about two minutes. JobThread is free while we’re in our pilot, and we’ll give plenty of notice
+              before that changes.
             </p>
             <p class="small muted">Already have an account? <a href="https://app.jobthread.ca">Sign in</a>.</p>
           </div>
-          <form name="early-access" method="POST" action="/thanks.html" data-netlify="true" netlify-honeypot="company-website" class="card form">
-            <input type="hidden" name="form-name" value="early-access" />
-            <p class="hidden-field">
-              <label>Leave this empty <input name="company-website" tabindex="-1" autocomplete="off" /></label>
+          <div class="card form">
+            <ol class="start-steps">
+              <li><strong>Enter your email.</strong> We send you a sign-in link. No password.</li>
+              <li><strong>Add your business name and mobile.</strong> Clients see them on every change.</li>
+              <li><strong>Send your first change.</strong> Your client approves it with one tap.</li>
+            </ol>
+            <a href="https://app.jobthread.ca" class="btn primary">Start free</a>
+            <p class="small muted">
+              By signing up you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
             </p>
-            <label class="field">
-              <span>Your name</span>
-              <input name="name" autocomplete="name" required maxlength="120" />
-            </label>
-            <label class="field">
-              <span>Business name</span>
-              <input name="business" autocomplete="organization" required maxlength="120" />
-            </label>
-            <label class="field">
-              <span>Email</span>
-              <input name="email" type="email" autocomplete="email" required maxlength="200" />
-            </label>
-            <label class="field">
-              <span>Mobile (optional)</span>
-              <input name="phone" type="tel" autocomplete="tel" maxlength="30" />
-            </label>
-            <label class="field">
-              <span>What kind of work do you do?</span>
-              <select name="work">
-                <option>Renovations, general</option>
-                <option>Basements</option>
-                <option>Kitchens and baths</option>
-                <option>Decks and exteriors</option>
-                <option>A trade (electrical, plumbing, HVAC…)</option>
-                <option>Something else</option>
-              </select>
-            </label>
-            <button type="submit" class="btn primary">Request access</button>
-            <p class="small muted">We’ll only use this to get in touch about JobThread.</p>
-          </form>
+          </div>
         </div>
       </section>
 
@@ -304,7 +280,7 @@
           </details>
           <details>
             <summary>What does it cost?</summary>
-            <p>It’s free during early access. We’ll give plenty of notice before that changes.</p>
+            <p>It’s free during the pilot. We’ll give plenty of notice before that changes.</p>
           </details>
         </div>
       </section>
@@ -314,6 +290,8 @@
       <div class="wrap footer-row">
         <span>© <span id="year">2026</span> JobThread</span>
         <a href="mailto:hello@jobthread.ca">hello@jobthread.ca</a>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
         <a href="https://app.jobthread.ca">Sign in</a>
       </div>
     </footer>
