@@ -80,6 +80,10 @@ v1 is a pilot: one contractor, one real job. See the build brief for scope.
   select vault.create_secret('you@example.com', 'signup_alert_to');
   ```
   Without them nothing is sent, and sign-up is never blocked.
+- **Start here:** new accounts get a card on Today with three steps (add a
+  job, send a change, approve one as a client would on a one-tap practice job,
+  named "Practice: …"). It ticks off as they go and hides when done or
+  dismissed.
 - **Landing page:** jobthread.ca sends everyone to sign up in the app (no
   waitlist), with plain-language Terms and Privacy pages at /terms and /privacy.
 - **Safety net:** if a database update hasn't been run yet, the profile falls

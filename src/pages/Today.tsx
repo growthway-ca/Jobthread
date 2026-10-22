@@ -8,6 +8,7 @@ import { firstName, leadReplyMessage, quoteNudgeMessage, smsHref, smsNumber } fr
 import { proposalLink } from './QuoteDetail';
 import { ErrorNote, Loading, Page } from '../components/Layout';
 import { InstallTip } from '../components/InstallTip';
+import { StartHere } from '../components/StartHere';
 import type { Lead, Quote, ScheduleItem } from '../lib/types';
 
 type JobRow = {
@@ -88,6 +89,7 @@ export function Today() {
         </p>
         <h1>Today</h1>
       </div>
+      <StartHere />
       <InstallTip />
       <ErrorNote message={error} />
       {!data && !error && <Loading />}
