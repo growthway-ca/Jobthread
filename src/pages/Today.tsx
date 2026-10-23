@@ -9,6 +9,7 @@ import { proposalLink } from './QuoteDetail';
 import { ErrorNote, Loading, Page } from '../components/Layout';
 import { InstallTip } from '../components/InstallTip';
 import { StartHere } from '../components/StartHere';
+import { shutoffMessage, shutoffTitle, shutoffWhen, utilityLabel, formatTimeRange } from '../lib/shutoffs';
 import type { Lead, Quote, ScheduleItem } from '../lib/types';
 
 type JobRow = {
@@ -96,6 +97,7 @@ export function Today() {
       {data && (
         <>
           <LeadsSection leads={data.leads} reload={load} />
+          <ShutoffsSection jobs={data.jobs} today={today} />
           <OnSiteSection jobs={data.jobs} today={today} />
           <ProposalsSection quotes={data.quotes} />
           <MoneySection jobs={data.jobs} />
@@ -291,6 +293,54 @@ function OnSiteSection({ jobs, today }: { jobs: JobRow[]; today: string }) {
   );
 }
 
+/** Shutoffs today and tomorrow, with the heads-up text for the client. */
+function ShutoffsSection({ jobs, today }: { jobs: JobRow[]; today: string }) {
+  const tomorrow = addDaysIso(today, 1);
+  const items = jobs
+    .flatMap((job) => job.job_schedule.map((s) => ({ ...s, job })))
+    .filter((s) => s.utility && s.starts_on <= tomorrow && (s.ends_on ?? s.starts_on) >= today)
+    .sort((a, b) => a.starts_on.localeCompare(b.starts_on) || (a.from_time ?? '').localeCompare(b.from_time ?? ''));
+  if (items.length === 0) return null;
+  return (
+    <section className="stack">
+      <h2>Shutoffs</h2>
+      <ul className="card rows">
+        {items.map((s) => {
+          const utility = s.utility!;
+          const client = s.job.clients;
+          const time = formatTimeRange(s.from_time, s.to_time);
+          const isToday = s.starts_on <= today;
+          return (
+            <li key={s.id} className="shutoff-row">
+              <Link to={`/jobs/${s.job_id}?tab=schedule`} className="row-main plain-link">
+                <strong>
+                  <span className="pill shutoff-pill">{utilityLabel(utility)} off</span> {isToday ? 'Today' : 'Tomorrow'}
+                  {time ? `, ${time}` : ''}
+                </strong>
+                <span className="muted small">
+                  {s.job.title}
+                  {s.note ? ` · ${s.note}` : ''}
+                </span>
+              </Link>
+              {client?.phone && (
+                <a
+                  className="btn small"
+                  href={smsHref(
+                    client.phone,
+                    shutoffMessage({ clientName: client.name, utility, when: shutoffWhen(s), note: s.note }),
+                  )}
+                >
+                  Text {firstName(client.name) || 'client'}
+                </a>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
 function ProposalsSection({ quotes }: { quotes: QuoteRow[] }) {
   if (quotes.length === 0) return null;
   return (
@@ -373,7 +423,8 @@ function MoneySection({ jobs }: { jobs: JobRow[] }) {
 function ComingUpSection({ jobs, today, weekOut }: { jobs: JobRow[]; today: string; weekOut: string }) {
   const items = jobs
     .flatMap((job) => job.job_schedule.map((s) => ({ ...s, jobTitle: job.title })))
-    .filter((s) => s.starts_on > today && s.starts_on <= weekOut)
+    // Tomorrow's shutoffs are already in the Shutoffs section.
+    .filter((s) => s.starts_on > today && s.starts_on <= weekOut && !(s.utility && s.starts_on <= addDaysIso(today, 1)))
     .sort((a, b) => a.starts_on.localeCompare(b.starts_on));
   if (items.length === 0) return null;
   return (
@@ -385,7 +436,16 @@ function ComingUpSection({ jobs, today, weekOut }: { jobs: JobRow[]; today: stri
             <Link to={`/jobs/${s.job_id}?tab=schedule`} className="row-link">
               <span className="date-chip">{formatDateRange(s.starts_on)}</span>
               <span className="row-main">
-                <strong>{s.title}</strong>
+                <strong>
+                  {s.utility ? (
+                    <>
+                      <span className="pill shutoff-pill">{utilityLabel(s.utility)} off</span>{' '}
+                      {[shutoffTitle(s.title, s.utility), formatTimeRange(s.from_time, s.to_time)].filter(Boolean).join(', ')}
+                    </>
+                  ) : (
+                    s.title
+                  )}
+                </strong>
                 <span className="muted small">
                   {s.jobTitle}
                   {s.trade ? ` · ${s.trade}` : ''}

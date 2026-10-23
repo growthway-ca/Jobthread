@@ -6,6 +6,7 @@ import { formatMoney, holdbackCents, taxCents } from '../lib/money';
 import { firstName, scheduleClause, smsHref } from '../lib/sms';
 import { Header, Loading } from '../components/Layout';
 import type { ClientProject as Project } from '../lib/types';
+import { formatTimeRange, shutoffTitle, utilityLabel } from '../lib/shutoffs';
 
 type LoadState = { kind: 'loading' } | { kind: 'missing' } | { kind: 'error' } | { kind: 'ready'; project: Project };
 
@@ -217,7 +218,18 @@ function ScheduleSection({ schedule }: { schedule: Project['schedule'] }) {
             <li key={i} className="row-link static">
               <span className={`date-chip ${onNow ? 'now' : ''}`}>{onNow ? 'Now' : formatDateRange(s.starts_on, s.ends_on)}</span>
               <span className="row-main">
-                <strong>{s.title}</strong>
+                <strong>
+                  {s.utility ? (
+                    <>
+                      <span className="pill shutoff-pill">{utilityLabel(s.utility)} off</span> {shutoffTitle(s.title, s.utility)}
+                    </>
+                  ) : (
+                    s.title
+                  )}
+                </strong>
+                {s.utility && (s.from_time || s.to_time) && (
+                  <span className="small">{formatTimeRange(s.from_time ?? null, s.to_time ?? null)}</span>
+                )}
                 {(s.trade || s.note || onNow) && (
                   <span className="muted small">
                     {onNow ? formatDateRange(s.starts_on, s.ends_on) : ''}

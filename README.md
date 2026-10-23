@@ -43,6 +43,10 @@ v1 is a pilot: one contractor, one real job. See the build brief for scope.
   (with how often each was opened), money waiting, and the week ahead.
 - **Schedule:** dates per job (demo, trades, inspections). Shown on Today and,
   where marked visible, on the client page.
+- **Shutoffs:** a schedule item can be a planned water, power, gas, heat or
+  internet shutoff with a time window. Today lists today's and tomorrow's with
+  a one-tap heads-up text to the client; they also show on the client page and
+  on every trade's job sheet for the job.
 - **Grow:** ask for Google reviews when a job is done, send clients a referral
   link (`/r/<token>`) whose leads land on Today, and 6- and 12-month check-ins.
 
