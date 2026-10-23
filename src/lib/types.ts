@@ -1,3 +1,5 @@
+import type { Utility } from './shutoffs';
+
 export type ChangeStatus = 'draft' | 'sent' | 'approved' | 'declined' | 'void';
 export type EventKind =
   | 'note'
@@ -242,7 +244,16 @@ export interface ClientProject {
     requested_at: string | null;
     paid_at: string | null;
   }[];
-  schedule: { title: string; starts_on: string; ends_on: string | null; trade: string | null; note: string | null }[];
+  schedule: {
+    title: string;
+    starts_on: string;
+    ends_on: string | null;
+    trade: string | null;
+    note: string | null;
+    utility?: Utility | null;
+    from_time?: string | null;
+    to_time?: string | null;
+  }[];
   updates: { body: string; created_at: string }[];
 }
 
@@ -255,6 +266,10 @@ export interface ScheduleItem {
   trade: string | null;
   note: string | null;
   visible_to_client: boolean;
+  /** Set when this item is a shutoff we cause (water off for the vanity, etc.). */
+  utility: Utility | null;
+  from_time: string | null;
+  to_time: string | null;
   created_at: string;
 }
 
@@ -323,6 +338,15 @@ export interface PublicJobSheet {
   water?: string | null;
   power?: string | null;
   notes?: string | null;
+  shutoffs?: {
+    utility: Utility;
+    title: string;
+    starts_on: string;
+    ends_on: string | null;
+    from_time: string | null;
+    to_time: string | null;
+    note: string | null;
+  }[];
 }
 
 export interface Subcontractor {

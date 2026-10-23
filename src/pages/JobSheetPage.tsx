@@ -5,6 +5,7 @@ import { formatDateRange } from '../lib/format';
 import { smsHref, smsNumber } from '../lib/sms';
 import { ErrorNote, Header, Loading } from '../components/Layout';
 import type { PublicJobSheet } from '../lib/types';
+import { shutoffTitle, shutoffWhen, utilityLabel } from '../lib/shutoffs';
 
 /** The page a trade opens from their job sheet text (/s/:token). No sign-in. */
 export function JobSheetPage() {
@@ -85,6 +86,26 @@ function SheetView({ token, sheet: s }: { token: string; sheet: PublicJobSheet }
               <p key={i}>{line}</p>
             ))}
           </div>
+        </section>
+      )}
+
+      {s.shutoffs && s.shutoffs.length > 0 && (
+        <section className="stack">
+          <h2>Shutoffs</h2>
+          <ul className="card rows">
+            {s.shutoffs.map((so, i) => (
+              <li key={i} className="row-link static">
+                <span className="row-main">
+                  <strong>
+                    <span className="pill shutoff-pill">{utilityLabel(so.utility)} off</span> {shutoffWhen(so)}
+                  </strong>
+                  {(shutoffTitle(so.title, so.utility) || so.note) && (
+                    <span className="muted small">{[shutoffTitle(so.title, so.utility), so.note].filter(Boolean).join(' · ')}</span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 
