@@ -1,12 +1,14 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { formatDateRange, formatWhen, todayIso } from '../lib/format';
 import { formatMoney, holdbackCents, taxCents } from '../lib/money';
 import { firstName, scheduleClause, smsHref } from '../lib/sms';
-import { Header, Loading } from '../components/Layout';
+import { ErrorNote, Header, Loading } from '../components/Layout';
 import type { ClientProject as Project } from '../lib/types';
 import { formatTimeRange, shutoffTitle, utilityLabel } from '../lib/shutoffs';
+import { groupSelections, selectionDetails } from '../lib/selections';
+import type { PublicSelection } from '../lib/types';
 
 type LoadState = { kind: 'loading' } | { kind: 'missing' } | { kind: 'error' } | { kind: 'ready'; project: Project };
 
@@ -15,18 +17,22 @@ export function ClientProject() {
   const { token = '' } = useParams();
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
 
-  useEffect(() => {
-    const load = () =>
+  const load = useCallback(
+    () =>
       supabase.rpc('get_job_by_share_token', { p_token: token }).then(({ data, error }) => {
         if (error) return setState({ kind: 'error' });
         setState(data ? { kind: 'ready', project: data as Project } : { kind: 'missing' });
-      });
+      }),
+    [token],
+  );
+
+  useEffect(() => {
     void load();
     // Fresh numbers when they come back to the tab, e.g. after approving a change.
     const onVisible = () => document.visibilityState === 'visible' && void load();
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [token]);
+  }, [load]);
 
   return (
     <>
@@ -41,7 +47,7 @@ export function ClientProject() {
         {state.kind === 'error' && (
           <Message title="We couldn’t load this">Check your connection and refresh the page.</Message>
         )}
-        {state.kind === 'ready' && <ProjectView project={state.project} />}
+        {state.kind === 'ready' && <ProjectView project={state.project} token={token} reload={load} />}
       </main>
     </>
   );
@@ -59,7 +65,7 @@ function Message({ title, children }: { title: string; children: ReactNode }) {
 const shortDate = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : '';
 
-function ProjectView({ project: p }: { project: Project }) {
+function ProjectView({ project: p, token, reload }: { project: Project; token: string; reload: () => PromiseLike<unknown> }) {
   const approved = p.changes.filter((c) => c.status === 'approved');
   const waiting = p.changes.filter((c) => c.status === 'sent');
   const changesCents = approved.reduce((t, c) => t + c.price_cents, 0);
@@ -69,6 +75,11 @@ function ProjectView({ project: p }: { project: Project }) {
   const nextIndex = p.payments.findIndex((m) => m.status !== 'paid');
   const holdback = Number(p.holdback_rate) > 0 ? holdbackCents(subtotal, p.holdback_rate) : 0;
   const question = smsHref(p.contractor_phone, `Hi, a question about my ${p.title}: `);
+  const selections = p.selections ?? [];
+  const toConfirm = selections.some((s) => !s.confirmed_at);
+  const selectionsSection = selections.length > 0 && (
+    <SelectionsSection selections={selections} token={token} business={p.business_name} phone={p.contractor_phone} reload={reload} />
+  );
 
   return (
     <div className="stack">
@@ -108,7 +119,11 @@ function ProjectView({ project: p }: { project: Project }) {
         </section>
       )}
 
+      {toConfirm && selectionsSection}
+
       {p.schedule.length > 0 && <ScheduleSection schedule={p.schedule} />}
+
+      {!toConfirm && selectionsSection}
 
       {p.payments.length > 0 && (
         <section className="stack">
@@ -201,6 +216,92 @@ function ProjectView({ project: p }: { project: Project }) {
         This page updates as the job goes. Keep the link to check in anytime.
       </p>
     </div>
+  );
+}
+
+function SelectionsSection({
+  selections,
+  token,
+  business,
+  phone,
+  reload,
+}: {
+  selections: PublicSelection[];
+  token: string;
+  business: string;
+  phone: string;
+  reload: () => PromiseLike<unknown>;
+}) {
+  const open = selections.filter((s) => !s.confirmed_at);
+  const [name, setName] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function confirm(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    const { error } = await supabase.rpc('confirm_selections', {
+      p_token: token,
+      p_name: name,
+      p_ids: open.map((s) => s.id),
+    });
+    setBusy(false);
+    if (error) {
+      if (error.message === 'name_required') return setError('Type your name first.');
+      return setError('That didn’t work. Check your signal and try again.');
+    }
+    await reload();
+  }
+
+  return (
+    <section className="stack">
+      <h2>Your selections</h2>
+      {groupSelections(selections).map((g) => (
+        <div key={g.id} className="stack-tight">
+          <p className="label-sm">{g.plural}</p>
+          <ul className="card rows">
+            {g.items.map((s) => {
+              const details = selectionDetails(s);
+              return (
+                <li key={s.id} className="row-link static">
+                  <span className="row-main">
+                    <strong>{s.name}</strong>
+                    {details && <span className="selection-details">{details}</span>}
+                    {s.location && <span className="small">Where: {s.location}</span>}
+                    {s.note && <span className="muted small">{s.note}</span>}
+                    <span className={s.confirmed_at ? 'confirmed-text small' : 'waiting-text small'}>
+                      {s.confirmed_at
+                        ? `Confirmed by ${firstName(s.confirmed_name ?? '') || s.confirmed_name} · ${shortDate(s.confirmed_at)}`
+                        : 'Waiting for you to confirm'}
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+      {open.length > 0 && (
+        <form onSubmit={confirm} className="card pad-card stack-tight waiting-card">
+          <strong>Is this what you picked?</strong>
+          <span className="muted small">
+            Check the names, codes and rooms. If anything’s off, text {business} instead and they’ll fix it.
+          </span>
+          <label className="field">
+            <span>Type your name</span>
+            <input autoComplete="name" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} />
+          </label>
+          <ErrorNote message={error} />
+          <button className="btn primary" disabled={busy}>
+            {busy ? 'Confirming…' : open.length === 1 ? 'Confirm this selection' : `Confirm these ${open.length} selections`}
+          </button>
+          <a href={smsHref(phone, 'Hi, about my selections: ')} className="btn plain">
+            Something’s not right
+          </a>
+        </form>
+      )}
+    </section>
   );
 }
 

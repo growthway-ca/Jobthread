@@ -6,6 +6,7 @@ import { smsHref, smsNumber } from '../lib/sms';
 import { ErrorNote, Header, Loading } from '../components/Layout';
 import type { PublicJobSheet } from '../lib/types';
 import { shutoffTitle, shutoffWhen, utilityLabel } from '../lib/shutoffs';
+import { groupSelections, selectionDetails } from '../lib/selections';
 
 /** The page a trade opens from their job sheet text (/s/:token). No sign-in. */
 export function JobSheetPage() {
@@ -86,6 +87,30 @@ function SheetView({ token, sheet: s }: { token: string; sheet: PublicJobSheet }
               <p key={i}>{line}</p>
             ))}
           </div>
+        </section>
+      )}
+
+      {s.selections && s.selections.length > 0 && (
+        <section className="stack">
+          <h2>Selections</h2>
+          {groupSelections(s.selections).map((g) => (
+            <div key={g.id} className="stack-tight">
+              <p className="label-sm">{g.plural}</p>
+              <ul className="card rows">
+                {g.items.map((x) => (
+                  <li key={x.id} className="row-link static">
+                    <span className="row-main">
+                      <strong>{x.name}</strong>
+                      {selectionDetails(x) && <span className="selection-details">{selectionDetails(x)}</span>}
+                      {x.location && <span className="small">Where: {x.location}</span>}
+                      {x.note && <span className="muted small">{x.note}</span>}
+                      {!x.confirmed_at && <span className="waiting-text small">Not confirmed by the client yet</span>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </section>
       )}
 

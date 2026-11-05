@@ -47,6 +47,10 @@ v1 is a pilot: one contractor, one real job. See the build brief for scope.
   internet shutoff with a time window. Today lists today's and tomorrow's with
   a one-tap heads-up text to the client; they also show on the client page and
   on every trade's job sheet for the job.
+- **Selections:** paint colours (brand, name, code, finish), flooring and other
+  picks per job, with where each one goes. The client confirms them on their
+  page with their typed name (logged on the thread), and trades see them on
+  their job sheets. Changing a pick clears its confirmation.
 - **Grow:** ask for Google reviews when a job is done, send clients a referral
   link (`/r/<token>`) whose leads land on Today, and 6- and 12-month check-ins.
 
