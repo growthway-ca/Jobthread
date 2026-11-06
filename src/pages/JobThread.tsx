@@ -9,13 +9,15 @@ import { ErrorNote, Loading, Page } from '../components/Layout';
 import { SendActions } from '../components/SendActions';
 import { PaymentsTab } from '../components/PaymentsTab';
 import { ScheduleTab } from '../components/ScheduleTab';
+import { SelectionsTab } from '../components/SelectionsTab';
 import { REASON_LABELS, type Change, type JobEvent } from '../lib/types';
 import { changePhotoUrl } from '../lib/photos';
 
-type Tab = 'thread' | 'schedule' | 'payments' | 'total';
+type Tab = 'thread' | 'schedule' | 'selections' | 'payments' | 'total';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'thread', label: 'Thread' },
   { id: 'schedule', label: 'Schedule' },
+  { id: 'selections', label: 'Picks' },
   { id: 'payments', label: 'Payments' },
   { id: 'total', label: 'Total' },
 ];
@@ -102,6 +104,7 @@ export function JobThread() {
       <ErrorNote message={error} />
       {tab === 'thread' && <Thread data={data} reload={reload} />}
       {tab === 'schedule' && <ScheduleTab data={data} reload={reload} />}
+      {tab === 'selections' && <SelectionsTab data={data} reload={reload} />}
       {tab === 'payments' && <PaymentsTab data={data} reload={reload} />}
       {tab === 'total' && <Totals data={data} />}
       <JobStatusToggle data={data} reload={reload} />
@@ -202,6 +205,15 @@ function ThreadItem({
           {event.kind === 'quote_accepted' ? 'Quote accepted' : 'Paid'} · {formatWhen(event.created_at)}
         </p>
         <p className="item-title">{event.body.replace(/^Payment received: /, '')}</p>
+      </article>
+    );
+  }
+
+  if (event.kind === 'selections_confirmed') {
+    return (
+      <article className="card item approved">
+        <p className="item-meta">Selections confirmed · {formatWhen(event.created_at)}</p>
+        <p className="item-body">{event.body}</p>
       </article>
     );
   }

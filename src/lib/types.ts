@@ -11,7 +11,8 @@ export type EventKind =
   | 'change_voided'
   | 'payment_requested'
   | 'payment_received'
-  | 'quote_accepted';
+  | 'quote_accepted'
+  | 'selections_confirmed';
 
 export interface Contractor {
   id: string;
@@ -255,6 +256,7 @@ export interface ClientProject {
     to_time?: string | null;
   }[];
   updates: { body: string; created_at: string }[];
+  selections?: PublicSelection[];
 }
 
 export interface ScheduleItem {
@@ -272,6 +274,48 @@ export interface ScheduleItem {
   to_time: string | null;
   created_at: string;
 }
+
+export type SelectionCategory = 'paint' | 'flooring' | 'tile' | 'other';
+
+/** A pick the client made: a paint colour, a floor, a fixture. */
+export interface Selection {
+  id: string;
+  job_id: string;
+  category: SelectionCategory;
+  brand: string | null;
+  name: string;
+  code: string | null;
+  color: string | null;
+  finish: string | null;
+  size: string | null;
+  grout: string | null;
+  pattern: string | null;
+  location: string | null;
+  note: string | null;
+  confirmed_name: string | null;
+  confirmed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** A selection as the client page and job sheets get it. */
+export type PublicSelection = Pick<
+  Selection,
+  | 'id'
+  | 'category'
+  | 'brand'
+  | 'name'
+  | 'code'
+  | 'color'
+  | 'finish'
+  | 'size'
+  | 'grout'
+  | 'pattern'
+  | 'location'
+  | 'note'
+  | 'confirmed_name'
+  | 'confirmed_at'
+>;
 
 export interface Lead {
   id: string;
@@ -338,6 +382,7 @@ export interface PublicJobSheet {
   water?: string | null;
   power?: string | null;
   notes?: string | null;
+  selections?: PublicSelection[];
   shutoffs?: {
     utility: Utility;
     title: string;

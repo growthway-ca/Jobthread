@@ -1466,6 +1466,44 @@ select:focus {
 .schedule-date .pill {
   margin: 0;
 }
+/* selections */
+.selection-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.selection-card {
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-left: 4px solid var(--waiting);
+}
+.selection-card.confirmed {
+  border-left-color: var(--approved);
+}
+.selection-name {
+  font-size: 18px;
+}
+.selection-details {
+  font-weight: 600;
+  font-size: 15px;
+}
+.confirmed-text {
+  color: var(--approved);
+  font-weight: 600;
+}
+.confirm-ask .btn {
+  align-self: flex-start;
+  margin-top: 6px;
+}
+.seg.four {
+  grid-template-columns: repeat(4, 1fr);
+}
+
 /* shutoffs */
 .pill.shutoff-pill {
   margin: 0;
