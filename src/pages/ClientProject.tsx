@@ -7,7 +7,7 @@ import { firstName, scheduleClause, smsHref } from '../lib/sms';
 import { ErrorNote, Header, Loading } from '../components/Layout';
 import type { ClientProject as Project } from '../lib/types';
 import { formatTimeRange, shutoffTitle, utilityLabel } from '../lib/shutoffs';
-import { groupSelections, selectionDetails } from '../lib/selections';
+import { groupSelections, selectionDetails, tileLayout } from '../lib/selections';
 import type { PublicSelection } from '../lib/types';
 
 type LoadState = { kind: 'loading' } | { kind: 'missing' } | { kind: 'error' } | { kind: 'ready'; project: Project };
@@ -268,6 +268,7 @@ function SelectionsSection({
                   <span className="row-main">
                     <strong>{s.name}</strong>
                     {details && <span className="selection-details">{details}</span>}
+                    {tileLayout(s) && <span className="small">{tileLayout(s)}</span>}
                     {s.location && <span className="small">Where: {s.location}</span>}
                     {s.note && <span className="muted small">{s.note}</span>}
                     <span className={s.confirmed_at ? 'confirmed-text small' : 'waiting-text small'}>

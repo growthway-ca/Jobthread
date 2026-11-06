@@ -1,4 +1,4 @@
--- JobThread: selections (paint colours, flooring and other picks).
+-- JobThread: selections (paint colours, flooring, tile and other picks).
 --
 -- What the client picked, written down once: brand, name, code and where it
 -- goes. The client sees them on their page and confirms with their typed name,
@@ -8,12 +8,15 @@
 create table public.job_selections (
   id             uuid primary key default gen_random_uuid(),
   job_id         uuid not null references public.jobs (id) on delete cascade,
-  category       text not null check (category in ('paint', 'flooring', 'other')),
+  category       text not null check (category in ('paint', 'flooring', 'tile', 'other')),
   brand          text check (brand is null or length(brand) <= 80),
   name           text not null check (length(trim(name)) between 1 and 120),
   code           text check (code is null or length(code) <= 60),
   color          text check (color is null or length(color) <= 80),
   finish         text check (finish is null or length(finish) <= 60),
+  size           text check (size is null or length(size) <= 40),
+  grout          text check (grout is null or length(grout) <= 80),
+  pattern        text check (pattern is null or length(pattern) <= 60),
   location       text check (location is null or length(location) <= 200),
   note           text check (note is null or length(note) <= 500),
   confirmed_name text,
@@ -30,8 +33,10 @@ set search_path = ''
 as $$
 begin
   new.updated_at := now();
-  if tg_op = 'UPDATE' and (new.category, new.brand, new.name, new.code, new.color, new.finish, new.location, new.note)
-     is distinct from (old.category, old.brand, old.name, old.code, old.color, old.finish, old.location, old.note) then
+  if tg_op = 'UPDATE' and (new.category, new.brand, new.name, new.code, new.color, new.finish, new.size, new.grout, new.pattern,
+      new.location, new.note)
+     is distinct from (old.category, old.brand, old.name, old.code, old.color, old.finish, old.size, old.grout, old.pattern,
+         old.location, old.note) then
     new.confirmed_name := null;
     new.confirmed_at := null;
   end if;
@@ -45,8 +50,8 @@ create trigger job_selections_touch before update on public.job_selections
 alter table public.job_selections enable row level security;
 revoke all on public.job_selections from anon, authenticated;
 grant select, delete on public.job_selections to authenticated;
-grant insert (id, job_id, category, brand, name, code, color, finish, location, note) on public.job_selections to authenticated;
-grant update (category, brand, name, code, color, finish, location, note) on public.job_selections to authenticated;
+grant insert (id, job_id, category, brand, name, code, color, finish, size, grout, pattern, location, note) on public.job_selections to authenticated;
+grant update (category, brand, name, code, color, finish, size, grout, pattern, location, note) on public.job_selections to authenticated;
 
 create policy "own selections: read" on public.job_selections
   for select to authenticated using (private.owns_job(job_id));
@@ -163,7 +168,8 @@ as $$
     'selections', coalesce((
       select jsonb_agg(jsonb_build_object(
                'id', x.id, 'category', x.category, 'brand', x.brand, 'name', x.name, 'code', x.code,
-               'color', x.color, 'finish', x.finish, 'location', x.location, 'note', x.note,
+               'color', x.color, 'finish', x.finish, 'size', x.size, 'grout', x.grout, 'pattern', x.pattern,
+               'location', x.location, 'note', x.note,
                'confirmed_name', x.confirmed_name, 'confirmed_at', x.confirmed_at)
              order by x.category, x.created_at)
       from public.job_selections x where x.job_id = j.id), '[]'::jsonb),
@@ -235,7 +241,8 @@ begin
     'selections', coalesce((
       select jsonb_agg(jsonb_build_object(
                'id', x.id, 'category', x.category, 'brand', x.brand, 'name', x.name, 'code', x.code,
-               'color', x.color, 'finish', x.finish, 'location', x.location, 'note', x.note,
+               'color', x.color, 'finish', x.finish, 'size', x.size, 'grout', x.grout, 'pattern', x.pattern,
+               'location', x.location, 'note', x.note,
                'confirmed_name', x.confirmed_name, 'confirmed_at', x.confirmed_at)
              order by x.category, x.created_at)
       from public.job_selections x where x.job_id = j.id), '[]'::jsonb),

@@ -13,7 +13,11 @@ insert into public.job_selections (job_id, category, brand, name, code, finish, 
 insert into public.job_selections (job_id, category, brand, name, color, location)
   values ('10000000-0000-0000-0000-0000000000cc', 'flooring', 'Torlys', 'Everest Elite', 'Natural Oak', 'Whole basement')
   returning id as floor_id \gset
-select test.check((select count(*) from public.job_selections) = 2, 'A can add selections');
+insert into public.job_selections (job_id, category, brand, name, color, size, grout, pattern, location)
+  values ('10000000-0000-0000-0000-0000000000cc', 'tile', 'Olympia', 'Calacatta Matte', 'White', '12 x 24 in.',
+          'Mapei Warm Grey #09', 'Offset 1/3', 'Shower walls')
+  returning id as tile_id \gset
+select test.check((select count(*) from public.job_selections) = 3, 'A can add selections, tile included');
 select test.expect_error(
   $$ insert into public.job_selections (job_id, category, name) values ('10000000-0000-0000-0000-0000000000cc', 'roof', 'x') $$,
   'category must be one of the choices');
@@ -37,18 +41,22 @@ select test.check(
   (select count(*) from jsonb_array_elements(public.get_job_by_share_token(:'jtok') -> 'selections') s
     where s ->> 'code' = 'OC-65' and s ->> 'confirmed_at' is null) = 1,
   'client page shows the paint code, not yet confirmed');
+select test.check(
+  (select count(*) from jsonb_array_elements(public.get_job_by_share_token(:'jtok') -> 'selections') s
+    where s ->> 'grout' = 'Mapei Warm Grey #09' and s ->> 'pattern' = 'Offset 1/3' and s ->> 'size' = '12 x 24 in.') = 1,
+  'client page shows the tile size, grout and pattern');
 select test.expect_error(format($$ select public.confirm_selections(%L, ' ', array[%L::uuid]) $$, :'jtok', :'paint_id'),
   'confirming needs a name');
 select test.expect_error(format($$ select public.confirm_selections(%L, 'Matt P.', array[%L::uuid]) $$, repeat('x', 32), :'paint_id'),
   'a wrong link can''t confirm');
-select test.check(public.confirm_selections(:'jtok', 'Matt  P.', array[:'paint_id', :'floor_id']::uuid[]) = 2, 'the client confirms both');
+select test.check(public.confirm_selections(:'jtok', 'Matt  P.', array[:'paint_id', :'floor_id', :'tile_id']::uuid[]) = 3, 'the client confirms all three');
 select test.check(public.confirm_selections(:'jtok', 'Matt P.', array[:'paint_id']::uuid[]) = 0, 'confirming again does nothing');
 reset role;
 
 select test.check(
   (select confirmed_name from public.job_selections where id = :'paint_id') = 'Matt P.', 'the typed name is saved, tidied');
 select test.check(
-  (select count(*) from public.job_events where kind = 'selections_confirmed' and body like 'Matt P. confirmed 2 selections:%') = 1,
+  (select count(*) from public.job_events where kind = 'selections_confirmed' and body like 'Matt P. confirmed 3 selections:%') = 1,
   'the thread logs the confirmation');
 
 -- A real change clears the confirmation; touching nothing else keeps it.
@@ -56,10 +64,12 @@ set role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-000000000001"}', false);
 update public.job_selections set code = 'OC-17' where id = :'paint_id';
 update public.job_selections set name = name where id = :'floor_id';
+update public.job_selections set grout = 'Mapei Pewter #02' where id = :'tile_id';
 insert into public.job_sheets (job_id, trade_name) values ('10000000-0000-0000-0000-0000000000cc', 'Brush Bros') returning token as stok \gset
 reset role;
 select test.check((select confirmed_at is null from public.job_selections where id = :'paint_id'), 'changing the code clears the confirmation');
 select test.check((select confirmed_at is not null from public.job_selections where id = :'floor_id'), 'saving with no change keeps it');
+select test.check((select confirmed_at is null from public.job_selections where id = :'tile_id'), 'changing the grout clears the confirmation');
 
 set role anon;
 select set_config('request.jwt.claims', '', false);

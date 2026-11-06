@@ -1500,8 +1500,8 @@ select:focus {
   align-self: flex-start;
   margin-top: 6px;
 }
-.seg.three {
-  grid-template-columns: 1fr 1fr 1fr;
+.seg.four {
+  grid-template-columns: repeat(4, 1fr);
 }
 
 /* shutoffs */

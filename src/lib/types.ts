@@ -275,7 +275,7 @@ export interface ScheduleItem {
   created_at: string;
 }
 
-export type SelectionCategory = 'paint' | 'flooring' | 'other';
+export type SelectionCategory = 'paint' | 'flooring' | 'tile' | 'other';
 
 /** A pick the client made: a paint colour, a floor, a fixture. */
 export interface Selection {
@@ -287,6 +287,9 @@ export interface Selection {
   code: string | null;
   color: string | null;
   finish: string | null;
+  size: string | null;
+  grout: string | null;
+  pattern: string | null;
   location: string | null;
   note: string | null;
   confirmed_name: string | null;
@@ -298,7 +301,20 @@ export interface Selection {
 /** A selection as the client page and job sheets get it. */
 export type PublicSelection = Pick<
   Selection,
-  'id' | 'category' | 'brand' | 'name' | 'code' | 'color' | 'finish' | 'location' | 'note' | 'confirmed_name' | 'confirmed_at'
+  | 'id'
+  | 'category'
+  | 'brand'
+  | 'name'
+  | 'code'
+  | 'color'
+  | 'finish'
+  | 'size'
+  | 'grout'
+  | 'pattern'
+  | 'location'
+  | 'note'
+  | 'confirmed_name'
+  | 'confirmed_at'
 >;
 
 export interface Lead {

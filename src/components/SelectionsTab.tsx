@@ -2,7 +2,15 @@ import { useState, type FormEvent } from 'react';
 import { supabase, projectLink } from '../lib/supabase';
 import { errorMessage } from '../lib/format';
 import { firstName, smsHref } from '../lib/sms';
-import { CATEGORIES, PAINT_FINISHES, groupSelections, selectionDetails, selectionsMessage } from '../lib/selections';
+import {
+  CATEGORIES,
+  PAINT_FINISHES,
+  TILE_PATTERNS,
+  groupSelections,
+  selectionDetails,
+  selectionsMessage,
+  tileLayout,
+} from '../lib/selections';
 import type { JobData } from '../lib/useJob';
 import type { Selection, SelectionCategory } from '../lib/types';
 import { ErrorNote } from './Layout';
@@ -20,7 +28,7 @@ export function SelectionsTab({ data, reload }: { data: JobData; reload: () => P
     <section aria-label="Selections" className="stack">
       {selections.length === 0 && (
         <p className="muted">
-          Write down what {name} picked: paint colours with the brand and code, flooring, fixtures, and where each one
+          Write down what {name} picked: paint colours with the brand and code, flooring, tile, fixtures, and where each one
           goes. {name} sees them on the client page and confirms them, and your trades see them on their job sheets.
         </p>
       )}
@@ -91,6 +99,7 @@ function SelectionCard({ item: s, onEdit, reload }: { item: Selection; onEdit: (
     <article className={`card selection-card ${s.confirmed_at ? 'confirmed' : ''}`}>
       <strong className="selection-name">{s.name}</strong>
       {details && <span className="selection-details">{details}</span>}
+      {tileLayout(s) && <span className="small">{tileLayout(s)}</span>}
       {s.location && <span className="small">Where: {s.location}</span>}
       {s.note && <span className="muted small">{s.note}</span>}
       <span className={s.confirmed_at ? 'confirmed-text small' : 'waiting-text small'}>
@@ -131,6 +140,12 @@ function AddSelection({ jobId, reload }: { jobId: string; reload: () => Promise<
 
 const FIELDS: Record<SelectionCategory, { name: [string, string]; brand: string; code: [string, string]; color?: [string, string] }> = {
   paint: { name: ['Colour name', 'Chantilly Lace'], brand: 'Benjamin Moore', code: ['Colour code', 'OC-65'] },
+  tile: {
+    name: ['Product name', 'Calacatta Matte'],
+    brand: 'Olympia',
+    code: ['SKU (optional)', 'MA.CA.1224'],
+    color: ['Colour', 'White'],
+  },
   flooring: {
     name: ['Product name', 'Everest Elite'],
     brand: 'Torlys',
@@ -160,6 +175,9 @@ function SelectionForm({
   const [code, setCode] = useState(existing?.code ?? '');
   const [color, setColor] = useState(existing?.color ?? '');
   const [finish, setFinish] = useState(existing?.finish ?? '');
+  const [size, setSize] = useState(existing?.size ?? '');
+  const [grout, setGrout] = useState(existing?.grout ?? '');
+  const [pattern, setPattern] = useState(existing?.pattern ?? '');
   const [location, setLocation] = useState(existing?.location ?? '');
   const [note, setNote] = useState(existing?.note ?? '');
   const [busy, setBusy] = useState(false);
@@ -177,6 +195,9 @@ function SelectionForm({
       code: code.trim() || null,
       color: category === 'paint' ? null : color.trim() || null,
       finish: category === 'paint' ? finish || null : null,
+      size: category === 'tile' ? size.trim() || null : null,
+      grout: category === 'tile' ? grout.trim() || null : null,
+      pattern: category === 'tile' ? pattern || null : null,
       location: location.trim() || null,
       note: note.trim() || null,
     };
@@ -191,7 +212,7 @@ function SelectionForm({
   return (
     <form onSubmit={save} className="card pad-card stack">
       <h2>{existing ? 'Edit selection' : 'Add a selection'}</h2>
-      <div className="seg three" role="group" aria-label="Kind">
+      <div className="seg four" role="group" aria-label="Kind">
         {CATEGORIES.map((c) => (
           <button
             key={c.id}
@@ -222,6 +243,34 @@ function SelectionForm({
         <span>{f.code[0]}</span>
         <input maxLength={60} placeholder={f.code[1]} value={code} onChange={(e) => setCode(e.target.value)} />
       </label>
+      {category === 'tile' && (
+        <>
+          <label className="field">
+            <span>Size</span>
+            <input maxLength={40} placeholder="12 × 24 in." value={size} onChange={(e) => setSize(e.target.value)} />
+          </label>
+          <fieldset className="chips-field">
+            <legend>Layout</legend>
+            <div className="chips">
+              {TILE_PATTERNS.map((x) => (
+                <button
+                  key={x}
+                  type="button"
+                  className={`chip ${pattern === x ? 'selected' : ''}`}
+                  aria-pressed={pattern === x}
+                  onClick={() => setPattern(pattern === x ? '' : x)}
+                >
+                  {x}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          <label className="field">
+            <span>Grout colour</span>
+            <input maxLength={80} placeholder="Mapei Warm Grey #09" value={grout} onChange={(e) => setGrout(e.target.value)} />
+          </label>
+        </>
+      )}
       {category === 'paint' && (
         <fieldset className="chips-field">
           <legend>Finish</legend>
@@ -244,7 +293,7 @@ function SelectionForm({
         <span>Where it goes</span>
         <input
           maxLength={200}
-          placeholder={category === 'paint' ? 'Living room, all walls' : 'Whole basement'}
+          placeholder={category === 'paint' ? 'Living room, all walls' : category === 'tile' ? 'Shower walls, to the ceiling' : 'Whole basement'}
           value={location}
           onChange={(e) => setLocation(e.target.value)}
         />
