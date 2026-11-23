@@ -24,6 +24,8 @@ export interface Contractor {
   google_rating: number | null;
   google_review_count: number | null;
   credentials: string | null;
+  /** Email when a quote is first opened or signed. Missing before update 10. */
+  quote_alerts?: boolean;
 }
 
 export interface Client {
@@ -158,14 +160,20 @@ export interface Quote {
   sent_at: string | null;
   accepted_at: string | null;
   accepted_name: string | null;
+  accepted_signature?: string | null;
   job_id: string | null;
   created_at: string;
 }
 
+/** addon: tick on or off. package: whole versions, pick one. choice: pick one from a group, like "Frame". */
+export type OptionKind = 'addon' | 'package' | 'choice';
+
 export interface QuoteOption {
   id: string;
   quote_id: string;
-  kind: 'addon' | 'package';
+  kind: OptionKind;
+  group_name?: string | null;
+  swatch?: string | null;
   position: number;
   title: string;
   detail: string | null;
@@ -195,9 +203,15 @@ export interface ClientQuote {
   sent_at?: string | null;
   accepted_at?: string | null;
   accepted_name?: string | null;
+  accepted_signature?: string | null;
+  contractor_name?: string;
+  etransfer_email?: string | null;
+  photos?: { path: string; label: string | null; width: number | null; height: number | null }[];
   options?: {
     id: string;
-    kind: 'addon' | 'package';
+    kind: OptionKind;
+    group_name?: string | null;
+    swatch?: string | null;
     title: string;
     detail: string | null;
     price_cents: number;
@@ -316,6 +330,28 @@ export type PublicSelection = Pick<
   | 'confirmed_name'
   | 'confirmed_at'
 >;
+
+export interface QuotePhoto {
+  id: string;
+  quote_id: string;
+  storage_path: string;
+  label: string | null;
+  position: number;
+  width: number | null;
+  height: number | null;
+  created_at: string;
+}
+
+/** A tap the client made on the proposal before signing. */
+export interface QuoteEvent {
+  id: string;
+  quote_id: string;
+  kind: 'picked' | 'removed';
+  option_id: string | null;
+  title: string;
+  total_cents: number | null;
+  created_at: string;
+}
 
 export interface Lead {
   id: string;

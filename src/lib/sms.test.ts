@@ -104,7 +104,7 @@ describe('other messages', () => {
         link: 'L',
       }),
     ).toBe(
-      "Hi Jordan, here's your quote from Keel Contracting for your basement finish: $72,190 + HST, with options you can choose from. See it and accept here: L",
+      "Hi Jordan, here's your quote from Keel Contracting for your basement finish: $72,190 + HST, with options you can choose from. Pick your options and sign here: L",
     );
   });
 

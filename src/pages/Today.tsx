@@ -90,6 +90,7 @@ export function Today() {
         </p>
         <h1>Today</h1>
       </div>
+      <JustSigned />
       <StartHere />
       <InstallTip />
       <ErrorNote message={error} />
@@ -337,6 +338,61 @@ function ShutoffsSection({ jobs, today }: { jobs: JobRow[]; today: string }) {
           );
         })}
       </ul>
+    </section>
+  );
+}
+
+type SignedRow = {
+  id: string;
+  number: number;
+  title: string;
+  base_cents: number;
+  accepted_name: string | null;
+  accepted_at: string;
+  job_id: string | null;
+  clients: { name: string; phone: string } | null;
+  quote_options: { price_cents: number; selected: boolean | null }[];
+};
+
+/** Quotes signed in the last two days: "Sarah Lee signed. Call now." */
+function JustSigned() {
+  const [rows, setRows] = useState<SignedRow[]>([]);
+  useEffect(() => {
+    const since = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+    supabase
+      .from('quotes')
+      .select('id, number, title, base_cents, accepted_name, accepted_at, job_id, clients(name, phone), quote_options(price_cents, selected)')
+      .eq('status', 'accepted')
+      .gte('accepted_at', since)
+      .order('accepted_at', { ascending: false })
+      .then(({ data }) => setRows((data ?? []) as unknown as SignedRow[]));
+  }, []);
+  if (rows.length === 0) return null;
+  return (
+    <section className="stack">
+      {rows.map((q) => {
+        const total = q.base_cents + q.quote_options.filter((o) => o.selected).reduce((t, o) => t + o.price_cents, 0);
+        const who = q.accepted_name || q.clients?.name || 'Your client';
+        return (
+          <article key={q.id} className="card pad-card signed-card">
+            <span className="pill approved-pill">Signed {formatWhen(q.accepted_at)}</span>
+            <strong className="signed-title">{who} just signed. Call now.</strong>
+            <span className="muted small">
+              Quote #{q.number} · {q.title} · {formatMoney(total)} + HST
+            </span>
+            <div className="signed-actions">
+              {q.clients?.phone && (
+                <a href={`tel:${smsNumber(q.clients.phone)}`} className="btn small">
+                  Call {firstName(q.clients.name) || 'them'}
+                </a>
+              )}
+              <Link to={`/quotes/${q.id}`} className="btn small plain">
+                See what they picked
+              </Link>
+            </div>
+          </article>
+        );
+      })}
     </section>
   );
 }
