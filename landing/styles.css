@@ -655,3 +655,7 @@ summary:focus-visible {
   flex-direction: column;
   gap: 6px;
 }
+.brand-mark {
+  display: block;
+  flex-shrink: 0;
+}

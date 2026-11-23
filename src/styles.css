@@ -2674,3 +2674,7 @@ figure.strip-photo figcaption {
   flex: 0 0 52px;
   width: 52px;
 }
+.brand-mark {
+  display: block;
+  flex-shrink: 0;
+}
