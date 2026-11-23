@@ -79,3 +79,19 @@ export async function uploadChangePhoto(jobId: string, photo: PreparedPhoto): Pr
 export function changePhotoUrl(path: string): string {
   return supabase.storage.from(CHANGE_PHOTO_BUCKET).getPublicUrl(path).data.publicUrl;
 }
+
+export const QUOTE_PHOTO_BUCKET = 'quote-photos';
+
+/** Uploads a photo of the space for a quote. Public under an unguessable name, like change photos. */
+export async function uploadQuotePhoto(quoteId: string, photo: PreparedPhoto): Promise<string> {
+  const path = `${quoteId}/${crypto.randomUUID()}.jpg`;
+  const { error } = await supabase.storage
+    .from(QUOTE_PHOTO_BUCKET)
+    .upload(path, photo.blob, { contentType: 'image/jpeg', upsert: false });
+  if (error) throw error;
+  return path;
+}
+
+export function quotePhotoUrl(path: string): string {
+  return supabase.storage.from(QUOTE_PHOTO_BUCKET).getPublicUrl(path).data.publicUrl;
+}

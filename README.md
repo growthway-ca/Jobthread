@@ -52,6 +52,13 @@ v1 is a pilot: one contractor, one real job. See the build brief for scope.
   picks per job, with where each one goes. The client confirms them on their
   page with their typed name (logged on the thread), and trades see them on
   their job sheets. Changing a pick clears its confirmation.
+- **Live quotes:** the proposal page (`/p/<token>`) shows photos of the space,
+  pick-one choice groups (with colour swatches) and add-ons, and one big price
+  that moves as the client taps. The client signs with a finger plus their
+  typed name and sees the deposit to book. The contractor sees what the client
+  tapped before signing, gets a "just signed, call now" card on Today, and an
+  email when the quote is first opened and when it's signed (Resend, via the
+  same `resend_api_key` Vault secret as the sign-up alert; off in Settings).
 - **Grow:** ask for Google reviews when a job is done, send clients a referral
   link (`/r/<token>`) whose leads land on Today, and 6- and 12-month check-ins.
 

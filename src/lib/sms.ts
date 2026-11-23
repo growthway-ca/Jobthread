@@ -141,7 +141,7 @@ export function quoteMessage(m: {
   const options = m.hasOptions ? ', with options you can choose from' : '';
   return (
     `${hi}here's your quote from ${m.businessName.trim()} for your ${m.title.trim()}: ` +
-    `${formatMoney(m.baseCents)} + HST${options}. See it and accept here: ${m.link}`
+    `${formatMoney(m.baseCents)} + HST${options}. ${m.hasOptions ? 'Pick your options and sign' : 'See it and sign'} here: ${m.link}`
   );
 }
 

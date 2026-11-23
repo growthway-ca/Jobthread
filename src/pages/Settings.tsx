@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { errorMessage } from '../lib/format';
@@ -103,6 +103,7 @@ export function Settings() {
           {busy ? 'Saving…' : 'Save'}
         </button>
       </form>
+      {contractor && <QuoteAlerts contractorId={contractor.id} />}
       <section className="card pad-card stack-tight feedback-card">
         <h2>Something off, or an idea?</h2>
         <p className="muted small">JobThread is new and built with contractors like you. Tell us what’s confusing, broken or missing.</p>
@@ -118,5 +119,46 @@ export function Settings() {
         </button>
       </div>
     </Page>
+  );
+}
+
+/** Email me when a client opens or signs a quote. Saved as soon as it's tapped. */
+function QuoteAlerts({ contractorId }: { contractorId: string }) {
+  const [on, setOn] = useState<boolean | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from('contractors')
+      .select('quote_alerts')
+      .eq('id', contractorId)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        // Hidden until the database update that adds it has run.
+        if (!error && data) setOn(Boolean((data as { quote_alerts: boolean }).quote_alerts));
+      });
+  }, [contractorId]);
+
+  if (on === null) return null;
+
+  async function toggle(value: boolean) {
+    setOn(value);
+    setError(null);
+    const { error } = await supabase.from('contractors').update({ quote_alerts: value }).eq('id', contractorId);
+    if (error) {
+      setOn(!value);
+      setError(errorMessage(error));
+    }
+  }
+
+  return (
+    <section className="card pad-card stack-tight">
+      <h2>Quote emails</h2>
+      <label className="check-row">
+        <input type="checkbox" checked={on} onChange={(e) => void toggle(e.target.checked)} />
+        <span>Email me when a client first opens a quote, and when they sign it</span>
+      </label>
+      <ErrorNote message={error} />
+    </section>
   );
 }

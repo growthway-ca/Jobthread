@@ -7,9 +7,19 @@ import { formatMoney, taxCents, taxLabel } from '../lib/money';
 import { firstName, quoteMessage, smsHref } from '../lib/sms';
 import { ErrorNote, Loading, Page } from '../components/Layout';
 import { SendActions } from '../components/SendActions';
-import type { Client, Quote, QuoteOption } from '../lib/types';
+import { SignatureView } from '../components/SignaturePad';
+import { QUOTE_PHOTO_BUCKET, quotePhotoUrl } from '../lib/photos';
+import type { Client, Quote, QuoteEvent, QuoteOption, QuotePhoto } from '../lib/types';
 
-type QuoteFull = Quote & { clients: Client; quote_options: QuoteOption[]; quote_views: { viewed_at: string }[] };
+type QuoteFull = Quote & {
+  clients: Client;
+  quote_options: QuoteOption[];
+  quote_views: { viewed_at: string }[];
+  quote_photos: QuotePhoto[];
+  quote_events: QuoteEvent[];
+};
+
+const KIND_ORDER = { package: 0, choice: 1, addon: 2 } as const;
 
 const STATUS_TEXT: Record<Quote['status'], string> = {
   draft: 'Draft',
@@ -34,13 +44,14 @@ export function QuoteDetail() {
   const load = useCallback(async () => {
     const { data, error } = await supabase
       .from('quotes')
-      .select('*, clients(*), quote_options(*), quote_views(viewed_at)')
+      .select('*, clients(*), quote_options(*), quote_views(viewed_at), quote_photos(*), quote_events(*)')
       .eq('id', quoteId)
       .maybeSingle();
     if (error || !data) return setError(error ? errorMessage(error) : 'We couldn’t find that quote.');
     const q = data as QuoteFull;
-    // Packages first, then add-ons.
-    q.quote_options.sort((a, b) => (a.kind === b.kind ? a.position - b.position : a.kind === 'package' ? -1 : 1));
+    // Packages, then choices, then add-ons.
+    q.quote_options.sort((a, b) => KIND_ORDER[a.kind] - KIND_ORDER[b.kind] || a.position - b.position);
+    q.quote_photos.sort((a, b) => a.position - b.position);
     setQuote(q);
   }, [quoteId]);
 
@@ -128,9 +139,26 @@ export function QuoteDetail() {
             price_cents: o.price_cents,
             recommended: o.recommended,
             kind: o.kind,
+            group_name: o.group_name ?? null,
+            swatch: o.swatch ?? null,
           })),
         );
         if (optError) throw optError;
+      }
+      // Photos are stored under the quote's id, so each one is copied across.
+      for (const p of q.quote_photos) {
+        const path = `${id}/${crypto.randomUUID()}.jpg`;
+        const { error: copyError } = await supabase.storage.from(QUOTE_PHOTO_BUCKET).copy(p.storage_path, path);
+        if (copyError) throw copyError;
+        const { error: photoError } = await supabase.from('quote_photos').insert({
+          quote_id: id,
+          storage_path: path,
+          label: p.label,
+          position: p.position,
+          width: p.width,
+          height: p.height,
+        });
+        if (photoError) throw photoError;
       }
       if (q.status === 'sent') {
         const { error: wError } = await supabase.from('quotes').update({ status: 'withdrawn' }).eq('id', q.id);
@@ -162,8 +190,11 @@ export function QuoteDetail() {
 
       {q.status === 'accepted' && (
         <div className="card approved-banner" role="status">
-          <h2>Accepted by {q.accepted_name}</h2>
+          <h2>
+            {q.accepted_signature ? 'Signed' : 'Accepted'} by {q.accepted_name}
+          </h2>
           <p>{formatWhen(q.accepted_at)}</p>
+          {q.accepted_signature && <SignatureView path={q.accepted_signature} label={`Signature of ${q.accepted_name}`} />}
           {q.job_id && (
             <Link to={`/jobs/${q.job_id}`} className="btn primary">
               Open the job
@@ -171,6 +202,19 @@ export function QuoteDetail() {
           )}
         </div>
       )}
+
+      {q.quote_photos.length > 0 && (
+        <div className="photo-strip">
+          {q.quote_photos.map((p) => (
+            <figure key={p.id} className="photo strip-photo">
+              <img src={quotePhotoUrl(p.storage_path)} alt={p.label ?? ''} />
+              {p.label && <figcaption>{p.label}</figcaption>}
+            </figure>
+          ))}
+        </div>
+      )}
+
+      {(q.status === 'sent' || q.status === 'accepted') && <ActivityTimeline quote={q} />}
 
       {scopeLines.length > 0 && (
         <ul className="checklist">
@@ -190,13 +234,13 @@ export function QuoteDetail() {
             <span>
               {o.title}
               <span className="muted small block">
-                {o.kind === 'package' ? 'Package · ' : ''}
+                {o.kind === 'package' ? 'Package · ' : o.kind === 'choice' ? `${o.group_name} · ` : ''}
                 {q.status === 'accepted'
                   ? o.selected
                     ? 'Picked'
                     : 'Not picked'
                   : o.recommended
-                    ? o.kind === 'package'
+                    ? o.kind !== 'addon'
                       ? 'Picked to start'
                       : 'Ticked to start'
                     : 'Optional'}
@@ -293,5 +337,43 @@ export function QuoteDetail() {
         </button>
       )}
     </Page>
+  );
+}
+
+/** "What Sarah did": opens, taps and signing, newest first. */
+function ActivityTimeline({ quote: q }: { quote: QuoteFull }) {
+  const name = firstName(q.clients.name) || q.clients.name;
+  const items: { at: string; text: string; detail?: string; tone?: 'signed' | 'picked' | 'removed' }[] = [];
+  if (q.sent_at) items.push({ at: q.sent_at, text: 'You sent the quote' });
+  for (const v of q.quote_views) items.push({ at: v.viewed_at, text: `${name} opened it` });
+  for (const e of q.quote_events) {
+    items.push({
+      at: e.created_at,
+      text: e.kind === 'picked' ? `Picked ${e.title}` : `Took off ${e.title}`,
+      detail: e.total_cents === null ? undefined : `Price now ${formatMoney(e.total_cents)} + HST`,
+      tone: e.kind,
+    });
+  }
+  if (q.status === 'accepted' && q.accepted_at) {
+    items.push({ at: q.accepted_at, text: `${name} signed`, tone: 'signed' });
+  }
+  items.sort((a, b) => b.at.localeCompare(a.at));
+  if (items.length <= 1) return null;
+  return (
+    <section className="stack-tight">
+      <h2>What {name} did</h2>
+      <ol className="card activity">
+        {items.map((item, i) => (
+          <li key={i} className={item.tone ?? ''}>
+            <span className="activity-dot" aria-hidden="true" />
+            <span className="activity-main">
+              <strong>{item.text}</strong>
+              {item.detail && <span className="muted small">{item.detail}</span>}
+            </span>
+            <span className="muted small activity-when">{formatWhen(item.at)}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
