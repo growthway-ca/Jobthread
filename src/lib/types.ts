@@ -12,7 +12,8 @@ export type EventKind =
   | 'payment_requested'
   | 'payment_received'
   | 'quote_accepted'
-  | 'selections_confirmed';
+  | 'selections_confirmed'
+  | 'stage_done';
 
 export interface Contractor {
   id: string;
@@ -268,6 +269,7 @@ export interface ClientProject {
     utility?: Utility | null;
     from_time?: string | null;
     to_time?: string | null;
+    done_on?: string | null;
   }[];
   updates: { body: string; created_at: string }[];
   selections?: PublicSelection[];
@@ -286,6 +288,8 @@ export interface ScheduleItem {
   utility: Utility | null;
   from_time: string | null;
   to_time: string | null;
+  /** When the contractor marked this stage done. Missing before update 11. */
+  done_on?: string | null;
   created_at: string;
 }
 

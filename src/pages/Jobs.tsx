@@ -6,12 +6,14 @@ import { formatMoney, jobTotals } from '../lib/money';
 import { firstName } from '../lib/sms';
 import { ErrorNote, Loading, Page } from '../components/Layout';
 import { paymentProgress, type PaymentProgress } from '../lib/progress';
+import { stageProgress, workAheadOfMoney, type StageProgress } from '../lib/stages';
 import type { Job } from '../lib/types';
 
 type JobRow = Job & {
   clients: { name: string } | null;
   changes: { status: string; price_cents: number }[];
   payment_milestones: { status: string; amount_cents: number; position: number }[];
+  job_schedule?: { title: string; starts_on: string; utility: string | null; done_on?: string | null }[];
 };
 
 type Filter = 'active' | 'close' | 'done';
@@ -22,14 +24,15 @@ export function Jobs() {
   const [filter, setFilter] = useState<Filter>('active');
 
   useEffect(() => {
-    supabase
-      .from('jobs')
-      .select('*, clients(name), changes(status, price_cents), payment_milestones(status, amount_cents, position)')
-      .order('created_at', { ascending: false })
-      .then(({ data, error }) => {
-        if (error) setError(errorMessage(error));
-        else setJobs((data as JobRow[]) ?? []);
-      });
+    const base = '*, clients(name), changes(status, price_cents), payment_milestones(status, amount_cents, position)';
+    const load = (columns: string) => supabase.from('jobs').select(columns).order('created_at', { ascending: false });
+    void (async () => {
+      let res = await load(`${base}, job_schedule(title, starts_on, utility, done_on)`);
+      // Before update 11 there's no done_on: show the list without stages rather than nothing.
+      if (res.error) res = await load(base);
+      if (res.error) setError(errorMessage(res.error));
+      else setJobs((res.data ?? []) as unknown as JobRow[]);
+    })();
   }, []);
 
   const rows = (jobs ?? []).map((job) => {
@@ -40,7 +43,8 @@ export function Jobs() {
       holdbackReleased: Boolean(job.holdback_released_at),
       milestones: job.payment_milestones,
     });
-    return { job, subtotal: totals.subtotalCents, progress };
+    const stages = stageProgress(job.job_schedule ?? []);
+    return { job, subtotal: totals.subtotalCents, progress, stages };
   });
   const active = rows.filter((r) => r.job.status === 'active');
   const close = active.filter((r) => r.progress.fullyPaid);
@@ -102,7 +106,7 @@ export function Jobs() {
             <ul className="list">
               {shown.map((r) => (
                 <li key={r.job.id}>
-                  <JobCard job={r.job} subtotal={r.subtotal} progress={r.progress} />
+                  <JobCard job={r.job} subtotal={r.subtotal} progress={r.progress} stages={r.stages} />
                 </li>
               ))}
             </ul>
@@ -113,11 +117,22 @@ export function Jobs() {
   );
 }
 
-function JobCard({ job, subtotal, progress }: { job: JobRow; subtotal: number; progress: PaymentProgress }) {
+function JobCard({
+  job,
+  subtotal,
+  progress,
+  stages,
+}: {
+  job: JobRow;
+  subtotal: number;
+  progress: PaymentProgress;
+  stages: StageProgress<NonNullable<JobRow['job_schedule']>[number]>;
+}) {
   const waiting = job.changes.filter((c) => c.status === 'sent').length;
   const requested = job.payment_milestones.some((m) => m.status === 'requested');
   const client = job.clients?.name ?? '';
-  const pct = Math.round(progress.fraction * 100);
+  const hasStages = stages.stages.length > 0;
+  const behind = !progress.fullyPaid && workAheadOfMoney(stages.fraction, progress.fraction, hasStages);
 
   return (
     <Link to={`/jobs/${job.id}`} className={`card job-card ${job.status === 'done' ? 'done' : ''}`}>
@@ -127,14 +142,22 @@ function JobCard({ job, subtotal, progress }: { job: JobRow; subtotal: number; p
         <span className="row-chevron" aria-hidden="true" />
       </div>
       <span className="muted">{client}</span>
-      <div className="pay-progress">
-        <div className="pay-bar" aria-hidden="true">
-          <span className={progress.fullyPaid ? 'full' : ''} style={{ width: `${pct}%` }} />
-        </div>
-        <span className="muted small">{pct}%</span>
-      </div>
+      {hasStages && (
+        <>
+          <div className="stage-segs" aria-hidden="true">
+            {stages.stages.map((s, i) => (
+              <span key={i} className={s.done_on ? 'done' : s === stages.current ? 'now' : ''} />
+            ))}
+          </div>
+          <span className="stage-label">{stages.label}</span>
+        </>
+      )}
       <div className="job-card-pills">
-        <span className={`pill ${progress.fullyPaid ? 'approved-pill' : ''}`}>{progress.label}</span>
+        {!hasStages && <span className="pill">No stages</span>}
+        <span className={`pill ${progress.fullyPaid ? 'approved-pill' : behind ? 'waiting' : ''}`}>
+          {progress.label}
+          {behind ? ' · ask for the next draw' : ''}
+        </span>
         {requested && <span className="pill waiting">Payment requested</span>}
         {waiting > 0 && (
           <span className="pill waiting">

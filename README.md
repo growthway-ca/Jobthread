@@ -43,6 +43,12 @@ v1 is a pilot: one contractor, one real job. See the build brief for scope.
   (with how often each was opened), money waiting, and the week ahead.
 - **Schedule:** dates per job (demo, trades, inspections). Shown on Today and,
   where marked visible, on the client page.
+- **Stages:** every schedule item that isn't a shutoff is a stage of the work.
+  The contractor marks a stage done with the date it was finished; the thread
+  logs it, the Jobs list shows a stages bar ("2 of 5 stages · Now: Rough-ins")
+  with the money collected as a pill (amber when the work is well ahead of the
+  money), the job screen shows Work and Collected side by side, and the client
+  page shows the stages as a dated ledger.
 - **Shutoffs:** a schedule item can be a planned water, power, gas, heat or
   internet shutoff with a time window. Today lists today's and tomorrow's with
   a one-tap heads-up text to the client; they also show on the client page and

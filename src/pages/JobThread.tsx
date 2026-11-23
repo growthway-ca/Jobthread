@@ -12,6 +12,8 @@ import { ScheduleTab } from '../components/ScheduleTab';
 import { SelectionsTab } from '../components/SelectionsTab';
 import { REASON_LABELS, type Change, type JobEvent } from '../lib/types';
 import { changePhotoUrl } from '../lib/photos';
+import { paymentProgress } from '../lib/progress';
+import { stageProgress, workAheadOfMoney } from '../lib/stages';
 
 type Tab = 'thread' | 'schedule' | 'selections' | 'payments' | 'total';
 const TABS: { id: Tab; label: string }[] = [
@@ -74,6 +76,7 @@ export function JobThread() {
       </div>
 
       <JobSummary data={data} />
+      <WorkAndMoney data={data} />
 
       <div className="action-grid">
         <Link to={`/jobs/${job.id}/changes/new`} className="btn primary span-2">
@@ -205,6 +208,15 @@ function ThreadItem({
           {event.kind === 'quote_accepted' ? 'Quote accepted' : 'Paid'} · {formatWhen(event.created_at)}
         </p>
         <p className="item-title">{event.body.replace(/^Payment received: /, '')}</p>
+      </article>
+    );
+  }
+
+  if (event.kind === 'stage_done') {
+    return (
+      <article className="card item approved">
+        <p className="item-meta">Stage done · {formatWhen(event.created_at)}</p>
+        <p className="item-title">{event.body.replace(/^Done: /, '')}</p>
       </article>
     );
   }
@@ -410,13 +422,6 @@ function JobSummary({ data }: { data: JobData }) {
           ? `All amounts before HST. Job total ${formatMoney(totals.subtotalCents)}.`
           : `Before HST. With HST: ${formatMoney(totals.totalCents, { alwaysCents: true })}`}
       </p>
-      {hasPayments && (
-        <div className="progress" aria-hidden="true">
-          {data.milestones.map((m) => (
-            <span key={m.id} className={`seg ${m.status}`} />
-          ))}
-        </div>
-      )}
       {waiting.length > 0 && (
         <p className="summary-waiting">
           {waiting.length === 1 ? '1 change' : `${waiting.length} changes`} waiting on{' '}
@@ -424,6 +429,66 @@ function JobSummary({ data }: { data: JobData }) {
         </p>
       )}
     </div>
+  );
+}
+
+/** Work stages next to money collected, and a nudge when the work gets ahead. */
+function WorkAndMoney({ data }: { data: JobData }) {
+  const { job } = data;
+  const totals = jobTotals(job.contract_cents, job.tax_rate, data.changes);
+  const stages = stageProgress(data.schedule);
+  const money = paymentProgress({
+    subtotalCents: totals.subtotalCents,
+    holdbackRate: Number(job.holdback_rate ?? 0),
+    holdbackReleased: Boolean(job.holdback_released_at),
+    milestones: data.milestones,
+  });
+  const hasStages = stages.stages.length > 0;
+  const scheduled = data.milestones.reduce((t, m) => t + m.amount_cents, 0);
+  const unscheduled = Math.max(0, money.targetCents - scheduled);
+  const behind = !money.fullyPaid && workAheadOfMoney(stages.fraction, money.fraction, hasStages);
+  const last = [...stages.stages].reverse().find((s) => s.done_on);
+
+  return (
+    <>
+      <div className="duo">
+        <Link to={`/jobs/${job.id}?tab=schedule`} className="card duo-card">
+          <span className="muted small">Work</span>
+          <span className="duo-number">{hasStages ? `${stages.doneCount} of ${stages.stages.length} stages` : 'No stages'}</span>
+          <span className="duo-bar" aria-hidden="true">
+            <i className="ink" style={{ width: `${Math.round(stages.fraction * 100)}%` }} />
+          </span>
+          <span className="small">
+            {!hasStages
+              ? 'Add stages on the Schedule tab'
+              : stages.current
+                ? `Now: ${stages.current.title}`
+                : `Last: ${last?.title ?? 'done'}`}
+          </span>
+        </Link>
+        <Link to={`/jobs/${job.id}?tab=payments`} className="card duo-card">
+          <span className="muted small">Collected</span>
+          <span className="duo-number">{formatMoney(money.paidCents)}</span>
+          <span className="duo-bar" aria-hidden="true">
+            <i className={money.fullyPaid ? 'full' : ''} style={{ width: `${Math.round(money.fraction * 100)}%` }} />
+          </span>
+          <span className="small">of {formatMoney(money.targetCents)} before HST</span>
+        </Link>
+      </div>
+      {behind && (
+        <div className="ahead-flag">
+          <span>
+            The work is ahead of the money.{' '}
+            {unscheduled > 0
+              ? `${formatMoney(unscheduled)} isn’t on a payment yet.`
+              : 'Time to request the next payment.'}
+          </span>
+          <Link to={`/jobs/${job.id}?tab=payments`} className="btn small">
+            {unscheduled > 0 ? 'Add a payment' : 'Payments'}
+          </Link>
+        </div>
+      )}
+    </>
   );
 }
 
