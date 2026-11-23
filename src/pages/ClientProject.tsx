@@ -8,6 +8,7 @@ import { ErrorNote, Header, Loading } from '../components/Layout';
 import type { ClientProject as Project } from '../lib/types';
 import { formatTimeRange, shutoffTitle, utilityLabel } from '../lib/shutoffs';
 import { groupSelections, selectionDetails, tileLayout } from '../lib/selections';
+import { stageProgress } from '../lib/stages';
 import type { PublicSelection } from '../lib/types';
 
 type LoadState = { kind: 'loading' } | { kind: 'missing' } | { kind: 'error' } | { kind: 'ready'; project: Project };
@@ -121,6 +122,7 @@ function ProjectView({ project: p, token, reload }: { project: Project; token: s
 
       {toConfirm && selectionsSection}
 
+      {p.schedule.length > 0 && <ProgressLedger schedule={p.schedule} />}
       {p.schedule.length > 0 && <ScheduleSection schedule={p.schedule} />}
 
       {!toConfirm && selectionsSection}
@@ -306,13 +308,57 @@ function SelectionsSection({
   );
 }
 
+/** The stages of the work, with the date each was done: a ledger the client can check. */
+function ProgressLedger({ schedule }: { schedule: Project['schedule'] }) {
+  const progress = stageProgress(schedule);
+  if (progress.stages.length === 0) return null;
+  const total = progress.stages.length;
+  return (
+    <section className="stack">
+      <div className="title-row">
+        <h2>Progress</h2>
+        <span className="muted small">
+          {progress.doneCount} of {total} stages done
+        </span>
+      </div>
+      <div className="stage-segs" aria-hidden="true">
+        {progress.stages.map((s, i) => (
+          <span key={i} className={s.done_on ? 'done' : s === progress.current ? 'now' : ''} />
+        ))}
+      </div>
+      <ol className="card ledger">
+        {progress.stages.map((s, i) => {
+          const state = s.done_on ? 'done' : s === progress.current ? 'now' : 'next';
+          return (
+            <li key={i} className={state}>
+              <span className="ledger-mark" aria-hidden="true" />
+              <span className="row-main">
+                <strong>{s.title}</strong>
+                <span className="muted small">
+                  {s.done_on
+                    ? `Done ${formatDateRange(s.done_on)}`
+                    : `Planned ${formatDateRange(s.starts_on, s.ends_on)}`}
+                  {s.trade ? ` · ${s.trade}` : ''}
+                </span>
+              </span>
+              {state === 'now' && <span className="pill info">Now</span>}
+              {state === 'done' && <span className="sr-only">Done</span>}
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
 function ScheduleSection({ schedule }: { schedule: Project['schedule'] }) {
   const today = todayIso();
-  const upcoming = schedule.filter((s) => (s.ends_on ?? s.starts_on) >= today);
+  // Stages are in the progress ledger; this lists the shutoffs coming up.
+  const upcoming = schedule.filter((s) => s.utility && (s.ends_on ?? s.starts_on) >= today);
   if (upcoming.length === 0) return null;
   return (
     <section className="stack">
-      <h2>What’s happening when</h2>
+      <h2>Shutoffs coming up</h2>
       <ul className="card rows">
         {upcoming.map((s, i) => {
           const onNow = s.starts_on <= today && (s.ends_on ?? s.starts_on) >= today;

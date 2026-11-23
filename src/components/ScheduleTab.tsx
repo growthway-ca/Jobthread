@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { supabase } from '../lib/supabase';
-import { errorMessage, formatDateRange, todayIso } from '../lib/format';
+import { errorMessage, formatDateRange, formatDay, todayIso } from '../lib/format';
 import type { JobData } from '../lib/useJob';
 import type { Client, ScheduleItem } from '../lib/types';
 import { smsHref } from '../lib/sms';
@@ -11,8 +11,10 @@ import { ErrorNote } from './Layout';
 export function ScheduleTab({ data, reload }: { data: JobData; reload: () => Promise<void> }) {
   const today = todayIso();
   const items = data.schedule;
-  const upcoming = items.filter((s) => (s.ends_on ?? s.starts_on) >= today);
-  const past = items.filter((s) => (s.ends_on ?? s.starts_on) < today);
+  // A stage stays up top until it's marked done, even once its dates have passed.
+  const finished = (s: ScheduleItem) => (s.ends_on ?? s.starts_on) < today && (Boolean(s.utility) || Boolean(s.done_on));
+  const upcoming = items.filter((s) => !finished(s));
+  const past = items.filter(finished);
 
   return (
     <section aria-label="Schedule" className="stack">
@@ -63,6 +65,18 @@ function ScheduleRow({
   const onNow = s.starts_on <= today && (s.ends_on ?? s.starts_on) >= today;
   const upcoming = (s.ends_on ?? s.starts_on) >= today;
   const time = formatTimeRange(s.from_time, s.to_time);
+  const isStage = !s.utility;
+  const overdue = isStage && !s.done_on && (s.ends_on ?? s.starts_on) < today;
+  const [marking, setMarking] = useState(false);
+  const [doneOn, setDoneOn] = useState(todayIso());
+
+  async function setDone(value: string | null) {
+    setError(null);
+    const { error } = await supabase.from('job_schedule').update({ done_on: value }).eq('id', s.id);
+    if (error) return setError(errorMessage(error));
+    setMarking(false);
+    await reload();
+  }
 
   async function remove() {
     if (!window.confirm(`Remove “${s.title}” from the schedule?`)) return;
@@ -81,14 +95,20 @@ function ScheduleRow({
   }
 
   return (
-    <article className={`card schedule-item ${onNow ? 'now' : ''} ${s.utility ? 'shutoff' : ''}`}>
+    <article className={`card schedule-item ${onNow && !s.done_on ? 'now' : ''} ${s.utility ? 'shutoff' : ''} ${s.done_on ? 'done' : ''}`}>
       <div className="schedule-date">
         <span>
           {formatDateRange(s.starts_on, s.ends_on)}
           {time && `, ${time}`}
         </span>
         {s.utility && <span className="pill shutoff-pill">{utilityLabel(s.utility)} off</span>}
-        {onNow && <span className="pill approved-pill">On now</span>}
+        {s.done_on ? (
+          <span className="pill approved-pill">Done {formatDay(s.done_on + 'T12:00:00')}</span>
+        ) : overdue ? (
+          <span className="pill waiting">Not marked done</span>
+        ) : (
+          onNow && <span className="pill approved-pill">On now</span>
+        )}
       </div>
       <strong>{s.title}</strong>
       {(s.trade || s.note) && (
@@ -109,7 +129,33 @@ function ScheduleRow({
           Text {client.name.split(' ')[0]} a heads-up
         </a>
       )}
+      {isStage && !s.done_on && !marking && (
+        <button type="button" className="btn small secondary" onClick={() => setMarking(true)}>
+          Mark done
+        </button>
+      )}
+      {marking && (
+        <div className="mark-done">
+          <label className="field">
+            <span>Finished on</span>
+            <input type="date" value={doneOn} max={todayIso()} onChange={(e) => setDoneOn(e.target.value)} />
+          </label>
+          <div className="row-actions">
+            <button type="button" className="btn small" disabled={!doneOn} onClick={() => void setDone(doneOn)}>
+              Save
+            </button>
+            <button type="button" className="btn small plain" onClick={() => setMarking(false)}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
       <div className="row-actions">
+        {s.done_on && (
+          <button type="button" className="btn small plain" onClick={() => void setDone(null)}>
+            Not done yet
+          </button>
+        )}
         <button type="button" className="btn small plain" onClick={() => void toggleVisible()}>
           {s.visible_to_client ? 'Shown to client' : 'Hidden from client'}
         </button>

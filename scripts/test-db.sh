@@ -42,5 +42,6 @@ done
 "${PSQL[@]}" -f "$ROOT/supabase/tests/shutoffs_test.sql"
 "${PSQL[@]}" -f "$ROOT/supabase/tests/selections_test.sql"
 "${PSQL[@]}" -f "$ROOT/supabase/tests/live_quotes_test.sql"
+"${PSQL[@]}" -f "$ROOT/supabase/tests/stage_done_test.sql"
 "${PSQL[@]}" -v email=a@example.com -f "$ROOT/supabase/dev-seed.sql" >/dev/null
 echo "Dev seed applies cleanly."
