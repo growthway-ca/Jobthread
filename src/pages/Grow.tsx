@@ -2,12 +2,19 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase, referralLink } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
-import { daysAgo, errorMessage, formatWhen } from '../lib/format';
+import { daysAgo, errorMessage, formatDay } from '../lib/format';
 import { checkinMessage, firstName, referralMessage, reviewMessage, reviewReminderMessage, smsHref } from '../lib/sms';
 import { ErrorNote, Loading, Page } from '../components/Layout';
+import { EmptyIcon } from '../components/EmptyIcon';
+import { jobTotals } from '../lib/money';
+import { paymentProgress } from '../lib/progress';
 import type { Job, Lead } from '../lib/types';
 
 type JobRow = Job & { clients: { name: string; phone: string; referral_token: string } | null };
+type OpenJobRow = JobRow & {
+  changes: { status: string; price_cents: number }[];
+  payment_milestones: { status: string; amount_cents: number }[];
+};
 type LeadRow = Lead & { referred_by: { name: string } | null };
 
 const MONTH = 30.44;
@@ -16,6 +23,7 @@ export function Grow() {
   const { contractor } = useAuth();
   const [jobs, setJobs] = useState<JobRow[] | null>(null);
   const [leads, setLeads] = useState<LeadRow[]>([]);
+  const [paidUp, setPaidUp] = useState<OpenJobRow[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -27,6 +35,22 @@ export function Grow() {
     if (err) return setError(errorMessage(err));
     setJobs((jobsRes.data ?? []) as JobRow[]);
     setLeads((leadsRes.data ?? []) as LeadRow[]);
+    // Open jobs that are paid in full: close them out so they can be asked for a review.
+    const open = await supabase
+      .from('jobs')
+      .select('*, clients(name, phone, referral_token), changes(status, price_cents), payment_milestones(status, amount_cents)')
+      .eq('status', 'active');
+    setPaidUp(
+      ((open.data ?? []) as OpenJobRow[]).filter(
+        (j) =>
+          paymentProgress({
+            subtotalCents: jobTotals(j.contract_cents, j.tax_rate, j.changes).subtotalCents,
+            holdbackRate: Number(j.holdback_rate ?? 0),
+            holdbackReleased: Boolean(j.holdback_released_at),
+            milestones: j.payment_milestones,
+          }).fullyPaid,
+      ),
+    );
   }, []);
 
   useEffect(() => {
@@ -63,10 +87,7 @@ export function Grow() {
 
   return (
     <Page>
-      <div className="today-head">
-        <p className="muted small">{business}</p>
-        <h1>Grow</h1>
-      </div>
+      <h1>Grow</h1>
       <ErrorNote message={error} />
 
       <div className="stat-row">
@@ -85,16 +106,38 @@ export function Grow() {
       </div>
 
       {!reviewUrl && (
-        <p className="notice">
-          Add your Google review link in <Link to="/settings">Settings</Link> so review requests can include it.
-        </p>
+        <Link to="/settings" className="card banner-card">
+          <EmptyIcon name="star" />
+          <span className="banner-text">
+            <strong>Connect your Google review link</strong>
+            <span className="small">It’s added to every review request for you.</span>
+          </span>
+          <span className="row-chevron" aria-hidden="true" />
+        </Link>
       )}
 
       <section className="stack">
         <h2>Ready to close out</h2>
-        {closeOut.length === 0 && (
+        {closeOut.length === 0 && paidUp.length === 0 && (
           <p className="muted small">When you mark a job done, it shows up here to ask for a review and a referral.</p>
         )}
+        {paidUp.map((j) => (
+          <article key={j.id} className="card pad-card close-card">
+            <span className="row-main">
+              <strong>{j.title}</strong>
+              <span className="small">
+                {j.clients?.name} · <span className="approved-text">Paid in full</span>
+              </span>
+            </span>
+            <button
+              type="button"
+              className="btn small"
+              onClick={() => void mark(j.id, { status: 'done' })}
+            >
+              Mark done
+            </button>
+          </article>
+        ))}
         {closeOut.map((j) => {
           const client = j.clients;
           if (!client) return null;
@@ -104,7 +147,7 @@ export function Grow() {
                 <strong>
                   {j.title} · {client.name}
                 </strong>
-                <span className="muted small">Done {formatWhen(j.done_at)}</span>
+                <span className="muted small">Done {formatDay(j.done_at)}</span>
               </div>
               <div className="action-grid">
                 {reviewUrl ? (
@@ -155,8 +198,8 @@ export function Grow() {
                     </strong>
                     <span className="muted small">
                       {j.review_received_at
-                        ? `Left a review ${formatWhen(j.review_received_at)}`
-                        : `Asked ${formatWhen(j.review_asked_at)}${j.review_reminded_at ? ' · reminded' : ''} · no review yet`}
+                        ? `Left a review ${formatDay(j.review_received_at)}`
+                        : `Asked ${formatDay(j.review_asked_at)}${j.review_reminded_at ? ' · reminded' : ''} · no review yet`}
                     </span>
                   </span>
                   {canRemind && (
@@ -188,9 +231,18 @@ export function Grow() {
       <section className="stack">
         <h2>Referrals</h2>
         {leads.length === 0 ? (
-          <p className="muted small">
-            When a friend uses a client’s referral link, they show up here and on Today as a new lead.
-          </p>
+          <div className="card empty-card">
+            <EmptyIcon name="people" />
+            <strong>No referral leads yet</strong>
+            <span className="muted small">
+              When a friend uses a client’s referral link, they show up here and on Today as a new lead.
+            </span>
+            {jobs[0]?.clients?.referral_token && (
+              <a href={referralLink(jobs[0].clients.referral_token)} target="_blank" rel="noreferrer" className="btn small outline">
+                Preview a referral link
+              </a>
+            )}
+          </div>
         ) : (
           <ul className="card rows">
             {leads.map((l) => (

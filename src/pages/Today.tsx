@@ -39,7 +39,6 @@ interface TodayData {
 const dayLabel = new Intl.DateTimeFormat('en-CA', { weekday: 'short', month: 'short', day: 'numeric' });
 
 export function Today() {
-  const { contractor } = useAuth();
   const [data, setData] = useState<TodayData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -86,7 +85,7 @@ export function Today() {
     <Page>
       <div className="today-head">
         <p className="muted small">
-          {contractor?.business_name} · {dayLabel.format(new Date())}
+          {dayLabel.format(new Date())}
         </p>
         <h1>Today</h1>
       </div>

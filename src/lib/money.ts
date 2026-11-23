@@ -91,3 +91,14 @@ export function paymentTotals(
 export function holdbackCents(subtotalCents: number, rate: number): number {
   return Math.round(subtotalCents * Number(rate));
 }
+
+/** Short totals for tiles: "$950", "$8.9k", "$58k", "$1.2M". */
+export function formatMoneyShort(cents: number): string {
+  const d = Math.round(cents / 100);
+  if (d < 1000) return `$${d}`;
+  if (d < 1_000_000) {
+    const k = d / 1000;
+    return `$${k < 10 ? Math.round(k * 10) / 10 : Math.round(k)}k`;
+  }
+  return `$${Math.round(d / 100_000) / 10}M`;
+}
