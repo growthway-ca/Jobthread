@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatMoney, jobTotals, parseDollars, paymentTotals } from './money';
+import { formatMoney, formatMoneyShort, jobTotals, parseDollars, paymentTotals } from './money';
 
 describe('parseDollars', () => {
   it.each([
@@ -55,5 +55,14 @@ describe('paymentTotals', () => {
       leftCents: 7000000,
       unscheduledCents: 2000000,
     });
+  });
+});
+
+describe('formatMoneyShort', () => {
+  it('shortens totals for tiles', () => {
+    expect(formatMoneyShort(95000)).toBe('$950');
+    expect(formatMoneyShort(890000)).toBe('$8.9k');
+    expect(formatMoneyShort(5800000)).toBe('$58k');
+    expect(formatMoneyShort(120000000)).toBe('$1.2M');
   });
 });

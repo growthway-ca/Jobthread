@@ -52,11 +52,11 @@ function Icon({ name }: { name: IconName }) {
   }
 }
 
-// Today sits in the middle as the main button.
-const ITEMS: { to: string; label: string; icon: IconName; main?: boolean; match?: (path: string) => boolean }[] = [
+// Today sits in the middle; every tab shares one active style.
+const ITEMS: { to: string; label: string; icon: IconName; match?: (path: string) => boolean }[] = [
   { to: '/jobs', label: 'Jobs', icon: 'jobs' },
   { to: '/quotes', label: 'Quotes', icon: 'quotes' },
-  { to: '/', label: 'Today', icon: 'today', main: true, match: (p) => p === '/' },
+  { to: '/', label: 'Today', icon: 'today', match: (p) => p === '/' },
   { to: '/money', label: 'Money', icon: 'money' },
   { to: '/grow', label: 'Grow', icon: 'grow' },
 ];
@@ -68,7 +68,7 @@ export function BottomNav() {
       {ITEMS.map((item) => {
         const active = item.match ? item.match(pathname) : pathname.startsWith(item.to);
         return (
-          <NavLink key={item.to} to={item.to} end={item.to === '/'} className={`nav-item${item.main ? ' main' : ''}${active ? ' active' : ''}`}>
+          <NavLink key={item.to} to={item.to} end={item.to === '/'} className={`nav-item${active ? ' active' : ''}`}>
             <span className="nav-pill">
               <Icon name={item.icon} />
             </span>

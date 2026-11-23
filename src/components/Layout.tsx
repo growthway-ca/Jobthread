@@ -2,12 +2,16 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Mark } from './Mark';
 import { BottomNav } from './BottomNav';
+import { useAuth } from '../lib/auth';
 
-export function Header({ right, linkHome = true }: { right?: ReactNode; linkHome?: boolean }) {
+export function Header({ right, linkHome = true, sub }: { right?: ReactNode; linkHome?: boolean; sub?: string }) {
   const brand = (
     <>
-      <Mark />
-      <span className="wordmark">JobThread</span>
+      <Mark size={36} />
+      <span className="brand-text">
+        <span className="wordmark">JobThread</span>
+        {sub && <span className="brand-sub">{sub}</span>}
+      </span>
     </>
   );
   return (
@@ -26,8 +30,10 @@ export function Header({ right, linkHome = true }: { right?: ReactNode; linkHome
 
 /** Header for signed-in contractor screens. */
 export function AppHeader() {
+  const { contractor } = useAuth();
   return (
     <Header
+      sub={contractor?.business_name}
       right={
         <Link to="/settings" className="header-icon" aria-label="Settings" title="Settings">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

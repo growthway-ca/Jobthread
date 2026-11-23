@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { errorMessage, formatWhen } from '../lib/format';
+import { errorMessage, formatDay } from '../lib/format';
 import { formatMoney, holdbackCents, jobTotals } from '../lib/money';
 import { ErrorNote, Loading, Page } from '../components/Layout';
 import { PAID_METHOD_LABELS, type Job, type Milestone, type Subcontractor } from '../lib/types';
 import { paperworkStatus } from '../lib/paperwork';
 import { subPaperworkMessage, smsHref } from '../lib/sms';
 import { useAuth } from '../lib/auth';
+import { EmptyIcon } from '../components/EmptyIcon';
 
 type JobRow = Job & {
   clients: { name: string } | null;
@@ -71,15 +72,26 @@ export function Money() {
   const owed = requested.reduce((t, r) => t + r.amount_cents, 0);
   const paidThisMonth = paidRecently.reduce((t, r) => t + r.amount_cents, 0);
 
+  const unscheduled = jobs.filter((j) => j.status === 'active' && j.payment_milestones.length === 0);
+
   return (
     <Page>
       <h1>Money</h1>
-      <div className="card hero-card">
-        <span className="small">Requested, waiting on payment</span>
-        <span className="hero-number">{formatMoney(owed)}</span>
-        <span className="small">
-          {requested.length === 1 ? '1 payment request' : `${requested.length} payment requests`} · before HST
-        </span>
+      <div className="card split-summary">
+        <div>
+          <span className="small strong">Waiting on payment</span>
+          <span className="split-number">{formatMoney(owed)}</span>
+          <span className="muted small">
+            {requested.length === 1 ? '1 request' : `${requested.length} requests`} · before HST
+          </span>
+        </div>
+        <div>
+          <span className="small strong">Collected, 30 days</span>
+          <span className="split-number collected">{formatMoney(paidThisMonth)}</span>
+          <span className="muted small">
+            {paidRecently.length === 1 ? '1 payment in' : `${paidRecently.length} payments in`}
+          </span>
+        </div>
       </div>
 
       {requested.length > 0 && (
@@ -87,7 +99,7 @@ export function Money() {
           <h2>Waiting on payment</h2>
           <ul className="card rows">
             {requested.map((r) => (
-              <MoneyRow key={r.id} row={r} detail={`Requested ${formatWhen(r.requested_at)}`} />
+              <MoneyRow key={r.id} row={r} detail={`Requested ${formatDay(r.requested_at)}`} />
             ))}
           </ul>
         </section>
@@ -95,11 +107,38 @@ export function Money() {
 
       <section className="stack">
         <h2>Up next</h2>
-        {next.length === 0 ? (
-          <p className="muted">
-            No upcoming payments. Set up a payment schedule from a job’s Payments tab.
-          </p>
-        ) : (
+        {next.length === 0 && (
+          <div className="card empty-card">
+            <EmptyIcon name="calendar" />
+            <strong>No upcoming payments scheduled</strong>
+            <span className="muted small">
+              {unscheduled.length > 0
+                ? 'Set up a payment schedule so you know what to ask for and when.'
+                : 'Payments you schedule on a job show up here.'}
+            </span>
+            {unscheduled.length === 0 && (
+              <Link to="/jobs" className="btn small outline">
+                Go to jobs
+              </Link>
+            )}
+          </div>
+        )}
+        {unscheduled.length > 0 && (
+          <ul className="card rows">
+            {unscheduled.map((j) => (
+              <li key={j.id} className="proposal-row">
+                <span className="row-main">
+                  <strong>{j.title}</strong>
+                  <span className="muted small">{j.clients?.name} · no payment schedule</span>
+                </span>
+                <Link to={`/jobs/${j.id}?tab=payments`} className="btn small outline">
+                  Set up
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+        {next.length > 0 && (
           <ul className="card rows">
             {next.map((r) => (
               <MoneyRow key={r.id} row={r} detail={r.due_note ?? 'Next payment'} />
@@ -119,7 +158,7 @@ export function Money() {
               <MoneyRow
                 key={r.id}
                 row={r}
-                detail={`Paid ${formatWhen(r.paid_at)}${r.paid_method ? ` · ${PAID_METHOD_LABELS[r.paid_method]}` : ''}`}
+                detail={`Paid ${formatDay(r.paid_at)}${r.paid_method ? ` · ${PAID_METHOD_LABELS[r.paid_method]}` : ''}`}
               />
             ))}
           </ul>
@@ -141,7 +180,7 @@ export function Money() {
                       <strong>{j.title}</strong>
                       <span className="muted small">
                         {j.holdback_released_at
-                          ? `Released ${formatWhen(j.holdback_released_at)}`
+                          ? `Released ${formatDay(j.holdback_released_at)}`
                           : j.holdback_release_date
                             ? `Release ${new Date(j.holdback_release_date + 'T12:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })}`
                             : 'No release date set'}
@@ -185,13 +224,33 @@ function SubPaperwork({ subs }: { subs: Subcontractor[] }) {
   return (
     <section className="stack">
       <div className="title-row">
-        <h2>Sub paperwork</h2>
-        <Link to="/subs" className="btn small plain">
-          {subs.length ? 'All subs' : 'Add subs'}
-        </Link>
+        <h2>Subcontractor paperwork</h2>
+        {subs.length > 0 && (
+          <Link to="/subs" className="btn small plain">
+            Manage
+          </Link>
+        )}
       </div>
-      {subs.length === 0 && <p className="muted small">Track each sub’s WSIB clearance and insurance so nothing lapses mid-job.</p>}
-      {subs.length > 0 && flagged.length === 0 && <p className="muted small">Everything on file is good for the next 30 days.</p>}
+      {subs.length === 0 && (
+        <div className="card icon-card">
+          <EmptyIcon name="shield" />
+          <div className="stack-tight">
+            <strong>Track WSIB and insurance</strong>
+            <span className="muted small">Keep each sub’s clearance and insurance dates on file so nothing lapses mid-job.</span>
+            <Link to="/subs" className="btn small soft">
+              + Add subcontractor
+            </Link>
+          </div>
+        </div>
+      )}
+      {subs.length > 0 && flagged.length === 0 && (
+        <div className="card icon-card">
+          <EmptyIcon name="shield" />
+          <span className="small">
+            {subs.length === 1 ? '1 sub' : `${subs.length} subs`} on file. Everything is good for the next 30 days.
+          </span>
+        </div>
+      )}
       {flagged.length > 0 && (
         <ul className="card rows">
           {flagged.map(({ sub, status }) => (
@@ -215,3 +274,4 @@ function SubPaperwork({ subs }: { subs: Subcontractor[] }) {
     </section>
   );
 }
+

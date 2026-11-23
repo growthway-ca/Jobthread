@@ -6,6 +6,7 @@
   --muted: #565e59;
   --accent: #1f4fd1;
   --accent-hover: #163a9c;
+  --accent-soft: #e6edfc;
   --approved: #0f6b5c;
   --approved-bg: #eaf4f1;
   --danger: #a3261b;
@@ -72,8 +73,9 @@ a {
 /* ---------------------------------------------------------------- layout */
 
 .app-header {
-  background: var(--ink);
-  color: #fff;
+  background: var(--card);
+  color: var(--ink);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -85,13 +87,23 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  color: #fff;
+  color: var(--ink);
   text-decoration: none;
   min-height: var(--touch);
 }
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.brand-sub {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
 .wordmark {
   font-weight: 800;
-  font-size: 23px;
+  font-size: 21px;
   font-stretch: 75%; /* Archivo's condensed width, as in the logo lockup */
   letter-spacing: -0.01em;
 }
@@ -101,17 +113,18 @@ a {
   justify-content: center;
   width: var(--touch);
   height: var(--touch);
-  color: #fff;
+  color: var(--ink);
+  background: var(--page);
   border-radius: 999px;
 }
 .header-icon:focus-visible {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--accent);
   outline-offset: -4px;
 }
 .header-btn {
   background: none;
   border: 0;
-  color: #fff;
+  color: var(--accent);
   font: inherit;
   font-size: 15px;
   min-height: var(--touch);
@@ -716,23 +729,11 @@ textarea:focus {
   border-radius: 999px;
 }
 .nav-item.active {
-  color: var(--ink);
+  color: var(--accent);
 }
 .nav-item.active .nav-pill {
-  background: var(--ink);
-  color: #fff;
-}
-/* Today: the main button, raised in the middle */
-.nav-item.main .nav-pill {
-  width: 56px;
-  height: 56px;
-  margin-top: -22px;
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 0 0 4px var(--card), 0 4px 10px rgba(27, 31, 29, 0.25);
-}
-.nav-item.main.active .nav-pill {
-  background: var(--accent-hover);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 /* ---------------------------------------------------------------- shared bits */
@@ -2677,4 +2678,247 @@ figure.strip-photo figcaption {
 .brand-mark {
   display: block;
   flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------- page titles, filters, job cards */
+
+.page-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.page-title h1 {
+  margin: 0;
+}
+.btn.small.title-action {
+  flex-shrink: 0;
+  font-weight: 700;
+}
+.page-summary {
+  margin: -8px 0 0;
+}
+.filter-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin: 0 -16px;
+  padding: 0 16px 2px;
+  scrollbar-width: none;
+}
+.filter-chips::-webkit-scrollbar {
+  display: none;
+}
+.filter-chip {
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.filter-chip.on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.filter-chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.job-card {
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 4px;
+}
+.job-card-top {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.job-card-top .job-title {
+  flex: 1;
+  min-width: 0;
+}
+.job-card-top .money {
+  font-size: 18px;
+}
+.row-chevron {
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--muted);
+  border-top: 2px solid var(--muted);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+  align-self: center;
+  margin-left: 2px;
+}
+.pay-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.pay-bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--page);
+  overflow: hidden;
+}
+.pay-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.pay-bar span.full {
+  background: var(--approved);
+}
+.job-card-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.job-card-pills .pill {
+  margin: 0;
+}
+
+/* quotes list */
+.quote-card {
+  padding: 0;
+  overflow: hidden;
+}
+.quote-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 20px 12px;
+  color: inherit;
+  text-decoration: none;
+}
+.quote-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 20px 14px;
+  border-top: 1px solid var(--page);
+}
+.quote-card-foot .pill {
+  margin: 0;
+}
+.pill.info {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.stat-money {
+  font-weight: 700;
+  font-size: 17px;
+}
+.stat.stat-info {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.stat.stat-won {
+  border-color: #b9dbd2;
+  background: var(--approved-bg);
+  color: var(--approved);
+}
+
+/* money and grow cards */
+.split-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0;
+}
+.split-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 18px;
+  min-width: 0;
+}
+.split-summary > div + div {
+  border-left: 1px solid var(--border);
+}
+.split-number {
+  font-size: 32px;
+  font-weight: 800;
+  font-stretch: 75%;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.split-number.collected {
+  color: var(--approved);
+}
+.empty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 22px 20px;
+  text-align: center;
+}
+.empty-card .btn {
+  margin-top: 6px;
+}
+.empty-icon {
+  color: var(--ink);
+  flex-shrink: 0;
+}
+.icon-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+}
+.icon-card .btn {
+  align-self: stretch;
+  margin-top: 6px;
+}
+.btn.small.soft {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.banner-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--waiting-bg);
+  border-color: #efd9ad;
+  color: var(--waiting);
+  text-decoration: none;
+}
+.banner-card .empty-icon {
+  color: var(--waiting);
+}
+.banner-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.banner-text .small {
+  color: var(--ink);
+}
+.banner-card .row-chevron {
+  border-color: var(--waiting);
+}
+.close-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.approved-text {
+  color: var(--approved);
+  font-weight: 600;
 }

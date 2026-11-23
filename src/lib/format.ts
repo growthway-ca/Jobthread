@@ -25,6 +25,14 @@ export function formatWhen(iso: string | null): string {
   return (d.getFullYear() === new Date().getFullYear() ? dateTime : dateTimeYear).format(d);
 }
 
+/** "Nov 22", or "Nov 22, 2025" in another year: for lists, where the minute doesn't matter. */
+export function formatDay(iso: string | null): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  return d.toLocaleDateString('en-CA', sameYear ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 /** Turns a Supabase/Postgres error into something a person can read. */
 export function errorMessage(err: unknown): string {
   if (err && typeof err === 'object' && 'message' in err) {
